@@ -30,11 +30,11 @@ def _case_identity(case: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _mean(case: dict[str, Any], metric: str) -> float | None:
+def _statistic(case: dict[str, Any], metric: str, statistic: str) -> float | None:
     distribution = case.get("aggregate", {}).get(metric)
     if not isinstance(distribution, dict):
         return None
-    value = distribution.get("mean")
+    value = distribution.get(statistic)
     return float(value) if isinstance(value, int | float) else None
 
 
@@ -96,10 +96,16 @@ def compare_checkpoint_reports(paths: tuple[Path, ...]) -> dict[str, Any]:
                 or _case_identity(case) != reference_identities[name]
             ):
                 raise ValueError(f"workload identity differs for case {name}/{backend}")
-            throughput = _mean(case, "output_tokens_per_second")
+            throughput = _statistic(case, "output_tokens_per_second", "mean")
+            throughput_p50 = _statistic(case, "output_tokens_per_second", "p50")
             tensorforge_case = tensorforge_by_name.get(name)
             tensorforge_throughput = (
-                _mean(tensorforge_case, "output_tokens_per_second")
+                _statistic(tensorforge_case, "output_tokens_per_second", "mean")
+                if tensorforge_case is not None
+                else None
+            )
+            tensorforge_throughput_p50 = (
+                _statistic(tensorforge_case, "output_tokens_per_second", "p50")
                 if tensorforge_case is not None
                 else None
             )
@@ -115,6 +121,7 @@ def compare_checkpoint_reports(paths: tuple[Path, ...]) -> dict[str, Any]:
                     "backend": backend,
                     "status": case["status"],
                     "output_tokens_per_second_mean": throughput,
+                    "output_tokens_per_second_p50": throughput_p50,
                     "throughput_relative_to_tensorforge": (
                         throughput / tensorforge_throughput
                         if throughput is not None
@@ -122,9 +129,18 @@ def compare_checkpoint_reports(paths: tuple[Path, ...]) -> dict[str, Any]:
                         and tensorforge_throughput > 0
                         else None
                     ),
-                    "request_latency_mean_ms": _mean(case, "request_latency_ms"),
-                    "ttft_mean_ms": _mean(case, "ttft_ms"),
-                    "tpot_mean_ms": _mean(case, "tpot_ms"),
+                    "throughput_p50_relative_to_tensorforge": (
+                        throughput_p50 / tensorforge_throughput_p50
+                        if throughput_p50 is not None
+                        and tensorforge_throughput_p50 is not None
+                        and tensorforge_throughput_p50 > 0
+                        else None
+                    ),
+                    "request_latency_mean_ms": _statistic(
+                        case, "request_latency_ms", "mean"
+                    ),
+                    "ttft_mean_ms": _statistic(case, "ttft_ms", "mean"),
+                    "tpot_mean_ms": _statistic(case, "tpot_ms", "mean"),
                     "generated_token_sha256": digest,
                     "greedy_tokens_match_tensorforge": (
                         digest == tensorforge_digest
@@ -185,16 +201,18 @@ def write_checkpoint_comparison(
         f"- Checkpoint: `{checkpoint['repository']}@{checkpoint['revision']}`",
         f"- GPU: {comparison['gpu']['name']}",
         "",
-        "| Case | Backend | Output tok/s | Relative to TensorForge | Mean latency ms | "
+        "| Case | Backend | Output tok/s P50 (mean) | P50 relative to TensorForge | "
+        "Mean latency ms | "
         "Mean TTFT ms | Mean TPOT ms | Greedy tokens match | Status |",
         "|---|---|---:|---:|---:|---:|---:|---:|---|",
     ]
     for row in rows:
-        relative = row["throughput_relative_to_tensorforge"]
+        relative = row["throughput_p50_relative_to_tensorforge"]
         relative_text = "n/a" if relative is None else f"{relative:.3f}x"
         lines.append(
             f"| {row['case']} | {row['backend']} | "
-            f"{_display(row['output_tokens_per_second_mean'])} | "
+            f"{_display(row['output_tokens_per_second_p50'])} "
+            f"({_display(row['output_tokens_per_second_mean'])}) | "
             f"{relative_text} | "
             f"{_display(row['request_latency_mean_ms'])} | "
             f"{_display(row['ttft_mean_ms'])} | {_display(row['tpot_mean_ms'])} | "

@@ -13,6 +13,9 @@ and explicit improvement/regression labels.
 
 Curated reports:
 
+- `reference/phase8r-rtx3080ti-wsl/`: pinned TinyLlama 1.1B BF16 TensorForge,
+  Transformers SDPA, and vLLM reference reports plus cross-backend comparison and the vectorized
+  paged-cache write ablation, measured on clean commit `5b22e5e`.
 - `reference/phase7a-rtx3080ti-wsl/execution.{json,csv,md}`: cumulative dynamic paged eager,
   address-stable bucket, Triton RMSNorm, fused residual/RMSNorm, Triton SwiGLU, segmented compile,
   and explicit CUDA Graph ablation on clean commit `b268f16`.

@@ -1,0 +1,68 @@
+{
+  "cache_shape": {
+    "block_size": 16,
+    "dtype": "fp16",
+    "head_dim": 64,
+    "num_kv_heads": 4
+  },
+  "correctness": "materialized key/value tensors match exactly",
+  "hardware": {
+    "cpu": "AMD Ryzen 9 5900XT 16-Core Processor",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "cudnn_version": 90100,
+    "fingerprint_sha256": "77278e66c8912b496682306deb107db0d1c325287febc4504b8bf666e266ea0c",
+    "git_commit": "5b22e5e620d0e16b743dafc90fb3eafb79cccbaa",
+    "git_dirty": false,
+    "gpus": [
+      {
+        "compute_capability": "8.6",
+        "driver_version": "591.86",
+        "gpu_uuid_sha256_16": "90530f9d34a9c8ce",
+        "multiprocessor_count": 80,
+        "name": "NVIDIA GeForce RTX 3080 Ti",
+        "physical_index": "0",
+        "total_memory_bytes": 12884377600,
+        "visible_index": 0,
+        "vram_mib_nvidia_smi": "12288"
+      }
+    ],
+    "kernel": "6.6.87.2-microsoft-standard-WSL2",
+    "logical_cpu_count": 32,
+    "nvidia_driver_cuda_version": "13.1",
+    "operating_system": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.31",
+    "python_version": "3.11.13",
+    "torch_cuda_runtime": "12.1",
+    "torch_version": "2.5.1+cu121",
+    "triton_version": "3.1.0",
+    "visible_cuda_devices": null
+  },
+  "repetitions": 100,
+  "rows": [
+    {
+      "optimized_ms": 0.038749120235443114,
+      "scalar_reference_ms": 0.046233601570129394,
+      "speedup": 1.1931522906638887,
+      "token_count": 1
+    },
+    {
+      "optimized_ms": 0.1768547248840332,
+      "scalar_reference_ms": 1.11087646484375,
+      "speedup": 6.281293675202466,
+      "token_count": 32
+    },
+    {
+      "optimized_ms": 0.14869695663452148,
+      "scalar_reference_ms": 4.560344848632813,
+      "speedup": 30.66871677704588,
+      "token_count": 128
+    },
+    {
+      "optimized_ms": 0.1486518383026123,
+      "scalar_reference_ms": 17.706905517578125,
+      "speedup": 119.11662660728062,
+      "token_count": 512
+    }
+  ],
+  "schema_version": "1.0"
+}

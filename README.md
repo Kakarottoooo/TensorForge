@@ -86,6 +86,25 @@ and raw samples are available in the
 [Phase 7A report](results/reference/phase7a-rtx3080ti-wsl/execution.md) and
 [validation record](docs/phase-7a-validation.md).
 
+Phase 8R uses a pinned TinyLlama 1.1B checkpoint and the same deterministic BF16 token workload
+across TensorForge, Transformers SDPA, and vLLM. Model load and tokenization are excluded. Values
+below are per-run output-throughput P50; this is an external reference comparison, not a
+one-factor ablation.
+
+| Workload | TensorForge | Transformers SDPA | vLLM |
+|---|---:|---:|---:|
+| B1, prompt 32, output 8 | 26.42 tok/s | 24.30 tok/s | 129.90 tok/s |
+| B4 burst, prompt 32, output 8 | 114.77 tok/s | 113.65 tok/s | 516.30 tok/s |
+| B1, prompt 128, output 16 | 18.16 tok/s | 35.35 tok/s | 149.60 tok/s |
+
+vLLM is 4.50–8.24x TensorForge on comparable rows. The P128 free-running token sequence diverges at
+an exact BF16 top-logit tie; the long teacher-forced logit/cache gate still passes. Multi-token
+paged-cache writes improve 6.28x, 30.67x, and 119.12x at 32, 128, and 512 tokens respectively,
+while the one-token direct-copy path is preserved. See the
+[Phase 8R comparison](results/reference/phase8r-rtx3080ti-wsl/comparison.md) and
+[validation record](docs/phase-8r-validation.md) for raw variance, latency tails, hashes, software
+differences, and the claim boundary.
+
 ## System architecture
 
 ```mermaid
