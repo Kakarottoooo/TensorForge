@@ -1,0 +1,9 @@
+# Direct, experiment-critical pins for the published Phase 3 WSL environment.
+# Install PyTorch from its CUDA 12.1 index before installing the editable project.
+torch==2.5.1+cu121
+triton==3.1.0
+numpy==2.4.6
+setuptools==84.0.0
+pytest==9.1.1
+ruff==0.16.5
+mypy==2.3.1

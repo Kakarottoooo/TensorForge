@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "warmup_ms": 25,
+  "repetition_ms": 100,
+  "copy_buffer_mib": 256,
+  "compute_ceiling": {
+    "fp32_gflops": 34201.6,
+    "derivation": "10240 CUDA cores * 1.67 GHz boost * 2 FLOP/cycle",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3080-3080ti/"
+  },
+  "cases": [
+    {"name": "rms-odd", "operation": "rms_norm", "rows": 17, "columns": 513, "precision": "fp16"},
+    {"name": "rms-decode-1", "operation": "rms_norm", "rows": 1, "columns": 4096, "precision": "fp16"},
+    {"name": "rms-decode-16", "operation": "rms_norm", "rows": 16, "columns": 4096, "precision": "fp16"},
+    {"name": "rms-prefill-default", "operation": "rms_norm", "rows": 2048, "columns": 512, "precision": "fp16"},
+    {"name": "rms-prefill-wide", "operation": "rms_norm", "rows": 128, "columns": 4096, "precision": "fp16"},
+    {"name": "rms-decode-bf16", "operation": "rms_norm", "rows": 16, "columns": 4096, "precision": "bf16"},
+    {"name": "rms-decode-fp32", "operation": "rms_norm", "rows": 16, "columns": 4096, "precision": "fp32"},
+
+    {"name": "resnorm-odd", "operation": "residual_rms_norm", "rows": 17, "columns": 513, "precision": "fp16"},
+    {"name": "resnorm-decode-1", "operation": "residual_rms_norm", "rows": 1, "columns": 4096, "precision": "fp16"},
+    {"name": "resnorm-decode-16", "operation": "residual_rms_norm", "rows": 16, "columns": 4096, "precision": "fp16"},
+    {"name": "resnorm-prefill-default", "operation": "residual_rms_norm", "rows": 2048, "columns": 512, "precision": "fp16"},
+    {"name": "resnorm-prefill-wide", "operation": "residual_rms_norm", "rows": 128, "columns": 4096, "precision": "fp16"},
+    {"name": "resnorm-decode-bf16", "operation": "residual_rms_norm", "rows": 16, "columns": 4096, "precision": "bf16"},
+    {"name": "resnorm-decode-fp32", "operation": "residual_rms_norm", "rows": 16, "columns": 4096, "precision": "fp32"},
+
+    {"name": "swiglu-odd", "operation": "swiglu", "rows": 17, "columns": 513, "precision": "fp16"},
+    {"name": "swiglu-decode-default", "operation": "swiglu", "rows": 1, "columns": 1376, "precision": "fp16"},
+    {"name": "swiglu-batch-default", "operation": "swiglu", "rows": 16, "columns": 1376, "precision": "fp16"},
+    {"name": "swiglu-prefill-default", "operation": "swiglu", "rows": 2048, "columns": 1376, "precision": "fp16"},
+    {"name": "swiglu-decode-7b", "operation": "swiglu", "rows": 1, "columns": 11008, "precision": "fp16"},
+    {"name": "swiglu-prefill-7b", "operation": "swiglu", "rows": 128, "columns": 11008, "precision": "fp16"},
+    {"name": "swiglu-batch-bf16", "operation": "swiglu", "rows": 16, "columns": 1376, "precision": "bf16"},
+    {"name": "swiglu-batch-fp32", "operation": "swiglu", "rows": 16, "columns": 1376, "precision": "fp32"}
+  ]
+}

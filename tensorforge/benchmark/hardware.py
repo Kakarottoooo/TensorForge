@@ -106,6 +106,37 @@ def resolve_physical_gpu_selector(visible_index: int) -> str:
     return selectors[visible_index]
 
 
+def collect_gpu_runtime_state(visible_index: int = 0) -> dict[str, float | int | str] | None:
+    """Capture a lightweight thermal/power/clock snapshot around an experiment."""
+
+    selector = resolve_physical_gpu_selector(visible_index)
+    output = _run_text(
+        [
+            "nvidia-smi",
+            "-i",
+            selector,
+            "--query-gpu=temperature.gpu,power.draw,power.limit,clocks.sm,clocks.mem",
+            "--format=csv,noheader,nounits",
+        ]
+    )
+    if output is None:
+        return None
+    parts = [part.strip() for part in output.splitlines()[0].split(",")]
+    if len(parts) != 5:
+        return None
+    try:
+        return {
+            "gpu_selector": selector,
+            "temperature_c": float(parts[0]),
+            "power_draw_w": float(parts[1]),
+            "power_limit_w": float(parts[2]),
+            "sm_clock_mhz": int(parts[3]),
+            "memory_clock_mhz": int(parts[4]),
+        }
+    except ValueError:
+        return None
+
+
 def _smi_row_for_visible(rows: list[dict[str, str]], visible_index: int) -> dict[str, str]:
     selector = resolve_physical_gpu_selector(visible_index)
     for row in rows:

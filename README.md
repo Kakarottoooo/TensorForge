@@ -5,11 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 2 measurement infrastructure implemented.** The repository contains a
-readable inference baseline, correctness contracts, versioned request-level benchmark records,
-hardware fingerprinting, explicit host/CUDA timing, profiler analysis, and JSON/CSV/Markdown report
-generation. Curated measurements are checked in only after running on named hardware; results remain
-scoped to their exact model, commit, workload, and environment.
+**Current status: Phase 3 Triton kernels implemented.** In addition to the Phase 2 measurement
+control plane, TensorForge contains autotuned RMSNorm, fused residual/RMSNorm, and SwiGLU activation
+kernels plus an integrated Llama execution path, GPU correctness grid, kernel microbenchmarks, and
+explicit arithmetic-intensity/empirical-roofline accounting. Results remain scoped to their exact
+model, commit, workload, and environment.
 
 Current measured artifacts: [RTX 3080 Ti baseline report](results/reference/phase2-rtx3080ti/benchmark.md)
 and [512-token profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
@@ -31,6 +31,8 @@ and [512-token profiler summary](results/reference/phase2-rtx3080ti/profile-p512
   [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md).
 - Measured Phase 2 evidence and its claim boundary in
   [`docs/phase-2-validation.md`](docs/phase-2-validation.md).
+- Kernel program structure, numerical behavior, autotuning, integration, and roofline assumptions in
+  [`docs/kernel-design.md`](docs/kernel-design.md).
 
 ## Baseline architecture
 
@@ -92,6 +94,17 @@ python -m scripts.profile_model \
 
 Use `python -m scripts.nsys_profile --output results/local/nsys/baseline` when Nsight Systems is on
 `PATH`. See the [benchmark methodology](docs/benchmark-methodology.md) before comparing rows.
+
+Phase 3 uses Linux/WSL because upstream Triton does not support this Windows Python environment:
+
+```bash
+bash scripts/setup_phase3_wsl.sh
+source ~/.venvs/tensorforge-py311/bin/activate
+pytest -q
+python -m scripts.benchmark_kernels \
+  --manifest benchmarks/phase3-kernels.json \
+  --output-dir results/local/phase3-kernels
+```
 
 ## Correctness policy
 
