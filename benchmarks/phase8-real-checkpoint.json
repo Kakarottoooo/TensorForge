@@ -34,7 +34,7 @@
       "precision": "bf16",
       "seed": 20260908,
       "warmup_repetitions": 1,
-      "measured_repetitions": 3,
+      "measured_repetitions": 5,
       "gpu_util_sample_ms": 50,
       "allow_batch_size_reduction": false
     },
@@ -59,7 +59,7 @@
       "precision": "bf16",
       "seed": 20260908,
       "warmup_repetitions": 1,
-      "measured_repetitions": 3,
+      "measured_repetitions": 5,
       "arrival_offsets_ms": [0.0, 0.0, 0.0, 0.0],
       "gpu_util_sample_ms": 50,
       "allow_batch_size_reduction": false
@@ -85,7 +85,7 @@
       "precision": "bf16",
       "seed": 20260908,
       "warmup_repetitions": 1,
-      "measured_repetitions": 3,
+      "measured_repetitions": 5,
       "arrival_offsets_ms": [0.0, 5.0, 10.0, 15.0],
       "gpu_util_sample_ms": 50,
       "allow_batch_size_reduction": false
@@ -111,7 +111,7 @@
       "precision": "bf16",
       "seed": 20260908,
       "warmup_repetitions": 1,
-      "measured_repetitions": 3,
+      "measured_repetitions": 5,
       "gpu_util_sample_ms": 50,
       "allow_batch_size_reduction": false
     }

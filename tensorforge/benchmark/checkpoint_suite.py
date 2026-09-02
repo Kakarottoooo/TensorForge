@@ -20,7 +20,10 @@ from tensorforge.benchmark.checkpoint_backends import (
     VllmCheckpointBackend,
     VllmCheckpointEngine,
 )
-from tensorforge.benchmark.hardware import collect_hardware_metadata
+from tensorforge.benchmark.hardware import (
+    collect_gpu_runtime_state,
+    collect_hardware_metadata,
+)
 from tensorforge.benchmark.reporting import write_csv, write_json
 from tensorforge.benchmark.runner import BackendFactory, run_case
 from tensorforge.benchmark.schema import (
@@ -243,6 +246,7 @@ def run_checkpoint_suite(
         raise RuntimeError("real-checkpoint benchmarks require CUDA")
     started = datetime.now(UTC)
     hardware = collect_hardware_metadata(repository).to_dict()
+    hardware["gpu_runtime_state_before"] = collect_gpu_runtime_state(device.index or 0)
     hardware["checkpoint"] = _checkpoint_metadata(manifest, checkpoint_dir)
     hardware["benchmark_backend"] = backend
     hardware["backend_packages"] = {
@@ -264,6 +268,17 @@ def run_checkpoint_suite(
             "timestamps are interpolated"
         ),
     }[backend]
+    hardware["runtime_config"] = {
+        "precision": manifest.workloads[0].precision.value,
+        "block_size": manifest.runtime.block_size,
+        "num_blocks": manifest.runtime.num_blocks,
+        "decode_mode": manifest.runtime.mode.value,
+        "fusion_level": manifest.runtime.fusion_level.value,
+        "batch_buckets": manifest.runtime.batch_buckets,
+        "context_buckets": manifest.runtime.context_buckets,
+        "vllm_gpu_memory_utilization": 0.70 if backend == "vllm" else None,
+        "vllm_enforce_eager": False if backend == "vllm" else None,
+    }
     vllm_engine = (
         VllmCheckpointEngine(
             checkpoint_dir=checkpoint_dir,
@@ -317,6 +332,7 @@ def run_checkpoint_suite(
                     error=f"{type(error).__name__}: {error}",
                 )
             )
+    hardware["gpu_runtime_state_after"] = collect_gpu_runtime_state(device.index or 0)
     result = BenchmarkSuiteResult(
         schema_version=SCHEMA_VERSION,
         suite_id=str(uuid.uuid4()),
