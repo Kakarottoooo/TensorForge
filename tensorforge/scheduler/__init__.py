@@ -3,6 +3,7 @@
 from tensorforge.scheduler.continuous import (
     BatchingPolicy,
     ContinuousBatchScheduler,
+    PrefillMode,
     RequestInput,
     RequestSnapshot,
     RequestState,
@@ -13,6 +14,7 @@ from tensorforge.scheduler.continuous import (
 __all__ = [
     "BatchingPolicy",
     "ContinuousBatchScheduler",
+    "PrefillMode",
     "RequestInput",
     "RequestSnapshot",
     "RequestState",

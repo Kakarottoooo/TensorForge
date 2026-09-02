@@ -14,6 +14,7 @@ from tensorforge.kernels.triton_attention import paged_gqa_decode_attention
 from tensorforge.model.layers import apply_batched_rotary_embedding
 from tensorforge.model.llama import LlamaForCausalLM
 from tensorforge.runtime.batch import BatchExecutionResult
+from tensorforge.runtime.prefill import prefill_requests
 
 
 @dataclass(slots=True)
@@ -59,6 +60,11 @@ class BatchedPagedDecodeExecutor:
 
     def release_request(self, request_id: str) -> None:
         self.cache.release(request_id)
+
+    def prefill_prompts(
+        self, prompts: dict[str, tuple[int, ...]]
+    ) -> BatchExecutionResult:
+        return prefill_requests(self.model, self.cache, prompts)
 
     @torch.inference_mode()
     def append_tokens(self, tokens: dict[str, int]) -> BatchExecutionResult:

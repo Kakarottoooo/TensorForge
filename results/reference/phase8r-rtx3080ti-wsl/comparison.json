@@ -1,0 +1,234 @@
+{
+  "backends": {
+    "tensorforge": {
+      "backend_packages": {
+        "safetensors": "0.8.0",
+        "transformers": "4.57.6",
+        "vllm": null
+      },
+      "hardware_fingerprint": "77278e66c8912b496682306deb107db0d1c325287febc4504b8bf666e266ea0c",
+      "measurement_boundary": "scheduled host token IDs through terminal request release; model loading and tokenization excluded; scheduler token selection synchronizes each decode step",
+      "torch_cuda_runtime": "12.1",
+      "torch_version": "2.5.1+cu121",
+      "triton_version": "3.1.0"
+    },
+    "transformers_sdpa": {
+      "backend_packages": {
+        "safetensors": "0.8.0",
+        "transformers": "4.57.6",
+        "vllm": null
+      },
+      "hardware_fingerprint": "77278e66c8912b496682306deb107db0d1c325287febc4504b8bf666e266ea0c",
+      "measurement_boundary": "simultaneous host token-ID batch through final greedy token; model loading and tokenization excluded; CUDA explicitly synchronized at each emitted token",
+      "torch_cuda_runtime": "12.1",
+      "torch_version": "2.5.1+cu121",
+      "triton_version": "3.1.0"
+    },
+    "vllm": {
+      "backend_packages": {
+        "safetensors": "0.8.0",
+        "transformers": "4.46.3",
+        "vllm": "0.6.4.post1"
+      },
+      "hardware_fingerprint": "4824b1e30c620b9bc0a715f473ade8c0a2bdfdf417b5efce8ef7848ca47104f8",
+      "measurement_boundary": "offline LLM.generate token-ID batch through completed outputs; model loading and tokenization excluded; TTFT/finish use vLLM metrics and intermediate token timestamps are interpolated",
+      "torch_cuda_runtime": "12.4",
+      "torch_version": "2.5.1+cu124",
+      "triton_version": "3.1.0"
+    }
+  },
+  "checkpoint": {
+    "config_sha256": "486bedda3a6988332e60d9638a09ca4b260d34ebcf1b19e22cf3b140b63d8fe9",
+    "repository": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "revision": "fe8a4ea1ffedaf415f4da2f062534de366a451e6",
+    "weights_sha256": "6e6001da2106d4757498752a021df6c2bdc332c650aae4bae6b0c004dcf14933",
+    "weights_size_bytes": 2200119864
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3080 Ti",
+    "total_memory_bytes": 12884377600
+  },
+  "rows": [
+    {
+      "backend": "tensorforge",
+      "case": "real-b1-p32-o8",
+      "error": null,
+      "generated_token_sha256": "73aafabce86b962b689a0cbcab75f533e535446bc9dd45a8a9ecbf22701cd0a4",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 27.474687591686035,
+      "output_tokens_per_second_p50": 26.424968315719788,
+      "request_latency_mean_ms": 293.0949518,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 1.0,
+      "throughput_relative_to_tensorforge": 1.0,
+      "tpot_mean_ms": 34.0125148,
+      "ttft_mean_ms": 55.0073482
+    },
+    {
+      "backend": "tensorforge",
+      "case": "real-b4-p32-o8-burst",
+      "error": null,
+      "generated_token_sha256": "604dd9f8a8af5de16e84770f78dfc0bf20050a300cad50d6d09ecc15daf5d83e",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 105.59307821477071,
+      "output_tokens_per_second_p50": 114.77448511977673,
+      "request_latency_mean_ms": 332.57008759999997,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 1.0,
+      "throughput_relative_to_tensorforge": 1.0,
+      "tpot_mean_ms": 35.161908600000004,
+      "ttft_mean_ms": 86.43672740000001
+    },
+    {
+      "backend": "tensorforge",
+      "case": "real-b4-p32-o8-staggered",
+      "error": null,
+      "generated_token_sha256": "628576724635e0b933c3888ec35ec6bd2777d04e23d1bc9a77232f9f452c4580",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 56.574952312099356,
+      "output_tokens_per_second_p50": 51.92558098429144,
+      "request_latency_mean_ms": 623.1552914,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 1.0,
+      "throughput_relative_to_tensorforge": 1.0,
+      "tpot_mean_ms": 62.62664627142857,
+      "ttft_mean_ms": 184.7687675
+    },
+    {
+      "backend": "tensorforge",
+      "case": "real-b1-p128-o16",
+      "error": null,
+      "generated_token_sha256": "fb02f354e0dda892a921f0c348edb89ec769c998dc961f335dc63290a4592e3f",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 19.994334505632445,
+      "output_tokens_per_second_p50": 18.155618963449598,
+      "request_latency_mean_ms": 857.308698,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 1.0,
+      "throughput_relative_to_tensorforge": 1.0,
+      "tpot_mean_ms": 53.67272924,
+      "ttft_mean_ms": 52.2177594
+    },
+    {
+      "backend": "transformers_sdpa",
+      "case": "real-b1-p32-o8",
+      "error": null,
+      "generated_token_sha256": "73aafabce86b962b689a0cbcab75f533e535446bc9dd45a8a9ecbf22701cd0a4",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 28.253352115262977,
+      "output_tokens_per_second_p50": 24.3048625505033,
+      "request_latency_mean_ms": 306.2486446,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 0.9197688436222166,
+      "throughput_relative_to_tensorforge": 1.028341160239892,
+      "tpot_mean_ms": 37.93921028571428,
+      "ttft_mean_ms": 40.674172600000006
+    },
+    {
+      "backend": "transformers_sdpa",
+      "case": "real-b4-p32-o8-burst",
+      "error": null,
+      "generated_token_sha256": "604dd9f8a8af5de16e84770f78dfc0bf20050a300cad50d6d09ecc15daf5d83e",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 123.61502863319723,
+      "output_tokens_per_second_p50": 113.64748704558932,
+      "request_latency_mean_ms": 294.3728474,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 0.990180761229194,
+      "throughput_relative_to_tensorforge": 1.1706735964432329,
+      "tpot_mean_ms": 37.1600206,
+      "ttft_mean_ms": 34.2527032
+    },
+    {
+      "backend": "transformers_sdpa",
+      "case": "real-b4-p32-o8-staggered",
+      "error": "ValueError: Transformers comparison supports simultaneous arrivals only",
+      "generated_token_sha256": null,
+      "greedy_tokens_match_tensorforge": null,
+      "output_tokens_per_second_mean": null,
+      "output_tokens_per_second_p50": null,
+      "request_latency_mean_ms": null,
+      "status": "failed",
+      "throughput_p50_relative_to_tensorforge": null,
+      "throughput_relative_to_tensorforge": null,
+      "tpot_mean_ms": null,
+      "ttft_mean_ms": null
+    },
+    {
+      "backend": "transformers_sdpa",
+      "case": "real-b1-p128-o16",
+      "error": null,
+      "generated_token_sha256": "29ceb0825b8f84248b308d4444d6395df54ff2a832fe7ab8b4fe6ebfce1daab5",
+      "greedy_tokens_match_tensorforge": false,
+      "output_tokens_per_second_mean": 35.952060607930505,
+      "output_tokens_per_second_p50": 35.35290320836236,
+      "request_latency_mean_ms": 501.12331320000004,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 1.947215530328868,
+      "throughput_relative_to_tensorforge": 1.7981123901774643,
+      "tpot_mean_ms": 30.289537466666665,
+      "ttft_mean_ms": 46.780251199999995
+    },
+    {
+      "backend": "vllm",
+      "case": "real-b1-p32-o8",
+      "error": null,
+      "generated_token_sha256": "73aafabce86b962b689a0cbcab75f533e535446bc9dd45a8a9ecbf22701cd0a4",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 124.31558926078685,
+      "output_tokens_per_second_p50": 129.8978470341139,
+      "request_latency_mean_ms": 65.59772439999999,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 4.915723851855662,
+      "throughput_relative_to_tensorforge": 4.524731676963829,
+      "tpot_mean_ms": 6.203290428571428,
+      "ttft_mean_ms": 22.1746914
+    },
+    {
+      "backend": "vllm",
+      "case": "real-b4-p32-o8-burst",
+      "error": null,
+      "generated_token_sha256": "604dd9f8a8af5de16e84770f78dfc0bf20050a300cad50d6d09ecc15daf5d83e",
+      "greedy_tokens_match_tensorforge": true,
+      "output_tokens_per_second_mean": 516.0157608901134,
+      "output_tokens_per_second_p50": 516.3034595526418,
+      "request_latency_mean_ms": 61.859189900000004,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 4.49841669090335,
+      "throughput_relative_to_tensorforge": 4.8868332054925485,
+      "tpot_mean_ms": 6.494407978571428,
+      "ttft_mean_ms": 16.39833405
+    },
+    {
+      "backend": "vllm",
+      "case": "real-b4-p32-o8-staggered",
+      "error": "ValueError: vLLM offline comparison supports simultaneous arrivals only",
+      "generated_token_sha256": null,
+      "greedy_tokens_match_tensorforge": null,
+      "output_tokens_per_second_mean": null,
+      "output_tokens_per_second_p50": null,
+      "request_latency_mean_ms": null,
+      "status": "failed",
+      "throughput_p50_relative_to_tensorforge": null,
+      "throughput_relative_to_tensorforge": null,
+      "tpot_mean_ms": null,
+      "ttft_mean_ms": null
+    },
+    {
+      "backend": "vllm",
+      "case": "real-b1-p128-o16",
+      "error": null,
+      "generated_token_sha256": "29ceb0825b8f84248b308d4444d6395df54ff2a832fe7ab8b4fe6ebfce1daab5",
+      "greedy_tokens_match_tensorforge": false,
+      "output_tokens_per_second_mean": 150.74055477160547,
+      "output_tokens_per_second_p50": 149.59822031973178,
+      "request_latency_mean_ms": 106.9536206,
+      "status": "completed",
+      "throughput_p50_relative_to_tensorforge": 8.239775279537364,
+      "throughput_relative_to_tensorforge": 7.539163392967221,
+      "tpot_mean_ms": 5.88822048,
+      "ttft_mean_ms": 18.6303134
+    }
+  ],
+  "schema_version": "1.0"
+}

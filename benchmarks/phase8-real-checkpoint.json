@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "checkpoint": {
+    "repository": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "revision": "fe8a4ea1ffedaf415f4da2f062534de366a451e6"
+  },
+  "runtime": {
+    "block_size": 16,
+    "num_blocks": 256,
+    "mode": "eager",
+    "fusion_level": "none",
+    "batch_buckets": [1, 2, 4],
+    "context_buckets": [64, 128, 256]
+  },
+  "cases": [
+    {
+      "name": "real-b1-p32-o8",
+      "model": {
+        "vocab_size": 32000,
+        "hidden_size": 2048,
+        "intermediate_size": 5632,
+        "num_hidden_layers": 22,
+        "num_attention_heads": 32,
+        "num_key_value_heads": 4,
+        "max_position_embeddings": 2048,
+        "rms_norm_eps": 0.00001,
+        "rope_theta": 10000.0,
+        "tie_word_embeddings": false
+      },
+      "prompt_length": 32,
+      "generation_length": 8,
+      "batch_size": 1,
+      "concurrency": 1,
+      "precision": "bf16",
+      "seed": 20260908,
+      "warmup_repetitions": 1,
+      "measured_repetitions": 5,
+      "gpu_util_sample_ms": 50,
+      "allow_batch_size_reduction": false
+    },
+    {
+      "name": "real-b4-p32-o8-burst",
+      "model": {
+        "vocab_size": 32000,
+        "hidden_size": 2048,
+        "intermediate_size": 5632,
+        "num_hidden_layers": 22,
+        "num_attention_heads": 32,
+        "num_key_value_heads": 4,
+        "max_position_embeddings": 2048,
+        "rms_norm_eps": 0.00001,
+        "rope_theta": 10000.0,
+        "tie_word_embeddings": false
+      },
+      "prompt_length": 32,
+      "generation_length": 8,
+      "batch_size": 4,
+      "concurrency": 4,
+      "precision": "bf16",
+      "seed": 20260908,
+      "warmup_repetitions": 1,
+      "measured_repetitions": 5,
+      "arrival_offsets_ms": [0.0, 0.0, 0.0, 0.0],
+      "gpu_util_sample_ms": 50,
+      "allow_batch_size_reduction": false
+    },
+    {
+      "name": "real-b4-p32-o8-staggered",
+      "model": {
+        "vocab_size": 32000,
+        "hidden_size": 2048,
+        "intermediate_size": 5632,
+        "num_hidden_layers": 22,
+        "num_attention_heads": 32,
+        "num_key_value_heads": 4,
+        "max_position_embeddings": 2048,
+        "rms_norm_eps": 0.00001,
+        "rope_theta": 10000.0,
+        "tie_word_embeddings": false
+      },
+      "prompt_length": 32,
+      "generation_length": 8,
+      "batch_size": 4,
+      "concurrency": 4,
+      "precision": "bf16",
+      "seed": 20260908,
+      "warmup_repetitions": 1,
+      "measured_repetitions": 5,
+      "arrival_offsets_ms": [0.0, 5.0, 10.0, 15.0],
+      "gpu_util_sample_ms": 50,
+      "allow_batch_size_reduction": false
+    },
+    {
+      "name": "real-b1-p128-o16",
+      "model": {
+        "vocab_size": 32000,
+        "hidden_size": 2048,
+        "intermediate_size": 5632,
+        "num_hidden_layers": 22,
+        "num_attention_heads": 32,
+        "num_key_value_heads": 4,
+        "max_position_embeddings": 2048,
+        "rms_norm_eps": 0.00001,
+        "rope_theta": 10000.0,
+        "tie_word_embeddings": false
+      },
+      "prompt_length": 128,
+      "generation_length": 16,
+      "batch_size": 1,
+      "concurrency": 1,
+      "precision": "bf16",
+      "seed": 20260908,
+      "warmup_repetitions": 1,
+      "measured_repetitions": 5,
+      "gpu_util_sample_ms": 50,
+      "allow_batch_size_reduction": false
+    }
+  ]
+}

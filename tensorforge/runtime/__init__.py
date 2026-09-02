@@ -8,6 +8,7 @@ from tensorforge.runtime.decode_bucket import (
     DecodeFusionLevel,
 )
 from tensorforge.runtime.generation import GenerationConfig, greedy_generate
+from tensorforge.runtime.prefill import prefill_request, prefill_requests
 from tensorforge.runtime.triton_model import TritonModelExecutor
 
 __all__ = [
@@ -19,4 +20,6 @@ __all__ = [
     "GenerationConfig",
     "TritonModelExecutor",
     "greedy_generate",
+    "prefill_request",
+    "prefill_requests",
 ]

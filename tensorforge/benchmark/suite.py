@@ -34,7 +34,7 @@ def _strict_keys(value: dict[str, Any], allowed: set[str], context: str) -> None
         raise ValueError(f"unknown {context} keys: {sorted(unknown)}")
 
 
-def _workload_from_dict(value: dict[str, Any]) -> WorkloadSpec:
+def workload_from_dict(value: dict[str, Any]) -> WorkloadSpec:
     allowed = {field.name for field in fields(WorkloadSpec)}
     _strict_keys(value, allowed, "workload")
     raw = dict(value)
@@ -73,7 +73,7 @@ def load_manifest(path: Path) -> tuple[WorkloadSpec, ...]:
     cases = value.get("cases")
     if not isinstance(cases, list) or not cases:
         raise ValueError("manifest cases must be a non-empty list")
-    return tuple(_workload_from_dict(case) for case in cases)
+    return tuple(workload_from_dict(case) for case in cases)
 
 
 def run_suite(

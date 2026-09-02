@@ -24,6 +24,7 @@ from tensorforge.model.layers import apply_batched_rotary_embedding
 from tensorforge.model.llama import LlamaForCausalLM
 from tensorforge.runtime.batch import BatchExecutionResult
 from tensorforge.runtime.batched_decode import BatchedPagedDecodeExecutor
+from tensorforge.runtime.prefill import prefill_requests
 
 compiler_disable: Any = torch.compiler.disable
 
@@ -562,6 +563,11 @@ class BucketedPagedDecodeExecutor:
 
     def release_request(self, request_id: str) -> None:
         self.cache.release(request_id)
+
+    def prefill_prompts(
+        self, prompts: dict[str, tuple[int, ...]]
+    ) -> BatchExecutionResult:
+        return prefill_requests(self.model, self.cache, prompts)
 
     def metrics(self) -> DecodeExecutionMetrics:
         return DecodeExecutionMetrics(**asdict(self._metrics))
