@@ -118,8 +118,18 @@ def _git_identity(repository: Path | None) -> tuple[str | None, bool | None]:
     if repository is None:
         return None, None
     commit = _run_text(["git", "-C", str(repository), "rev-parse", "HEAD"])
-    status = _run_text(["git", "-C", str(repository), "status", "--porcelain"])
-    return commit, bool(status) if status is not None else None
+    try:
+        status = subprocess.run(
+            ["git", "-C", str(repository), "status", "--porcelain"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return commit, None
+    return commit, bool(status.stdout.strip())
 
 
 @dataclass(frozen=True, slots=True)
