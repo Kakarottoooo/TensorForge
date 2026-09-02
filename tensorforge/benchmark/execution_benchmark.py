@@ -91,7 +91,7 @@ class ExecutionRun:
     measured_host_ms: float
     cuda_step_latency_ms: tuple[float, ...]
     tokens_per_second: float
-    address_stable: bool
+    address_stable: bool | None
     setup_metrics: dict[str, Any]
     measured_metrics: dict[str, Any]
 
@@ -283,7 +283,7 @@ def _run_once(
         measured_host_ms=measured_host_ms,
         cuda_step_latency_ms=cuda_step_latency_ms,
         tokens_per_second=(case.batch_size * case.decode_steps) / (measured_host_ms / 1_000),
-        address_stable=addresses_before == addresses_after,
+        address_stable=(addresses_before == addresses_after) if addresses_before else None,
         setup_metrics=asdict(setup_metrics),
         measured_metrics=_metrics_delta(measured_before, measured_after),
     )
@@ -317,7 +317,11 @@ def _aggregate(runs: list[ExecutionRun]) -> dict[str, Any]:
         "compile_time_ms": _distribution(
             [float(run.setup_metrics["compile_time_ms"]) for run in runs]
         ),
-        "address_stable_all_runs": all(run.address_stable for run in runs),
+        "address_stable_all_runs": (
+            all(run.address_stable is True for run in runs)
+            if any(run.address_stable is not None for run in runs)
+            else None
+        ),
         "measured_metric_totals": metric_totals,
     }
 
