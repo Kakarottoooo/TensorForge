@@ -134,7 +134,6 @@ def _git_identity(repository: Path | None) -> tuple[str | None, bool | None]:
 
 @dataclass(frozen=True, slots=True)
 class HardwareMetadata:
-    hostname: str
     operating_system: str
     kernel: str
     python_version: str
@@ -175,7 +174,9 @@ def collect_hardware_metadata(repository: Path | None = None) -> HardwareMetadat
                 {
                     "visible_index": visible_index,
                     "physical_index": smi.get("physical_index"),
-                    "uuid": smi.get("uuid"),
+                    "gpu_uuid_sha256_16": hashlib.sha256(smi["uuid"].encode()).hexdigest()[:16]
+                    if smi.get("uuid")
+                    else None,
                     "name": properties.name,
                     "compute_capability": f"{properties.major}.{properties.minor}",
                     "total_memory_bytes": properties.total_memory,
@@ -190,7 +191,6 @@ def collect_hardware_metadata(repository: Path | None = None) -> HardwareMetadat
         cast(int | None, cudnn_backend.version()) if cudnn_backend.is_available() else None
     )
     return HardwareMetadata(
-        hostname=platform.node(),
         operating_system=platform.platform(),
         kernel=platform.release(),
         python_version=platform.python_version(),

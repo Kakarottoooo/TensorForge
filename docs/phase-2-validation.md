@@ -24,6 +24,9 @@ The random-weight reference model has approximately 56 million parameters and us
 PyTorch attention plus full-prefix recomputation. Results are not checkpoint-quality or optimized
 runtime claims.
 
+The curated outputs are `results/reference/phase2-rtx3080ti/benchmark.{json,csv,md}` and
+`results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.{json,md}`.
+
 | Prompt / output | Batch | Repetitions | TTFT P50 / P95 / P99 ms | TPOT P50 / P95 / P99 ms | Mean output tok/s | Peak allocated MiB |
 |---:|---:|---:|---:|---:|---:|---:|
 | 128 / 32 | 1 | 10 | 17.850 / 31.563 / 31.672 | 13.778 / 17.577 / 17.938 | 70.199 | 136.675 |
@@ -43,8 +46,8 @@ randomized repeated suites before optimization ratios are claimed.
 
 The curated profile uses prompt 512, batch 1, FP16, one prefill region and four full-prefix decode
 steps. `torch.profiler` gives a **kernel-launch/latency-dominant candidate** classification with
-provisional, nonexclusive self-device-time shares: matrix multiply 25.5%, memory/pointwise 39.6%,
-and repeated kernels averaging at most 25 microseconds 39.6%. The launch share overlaps operator
+provisional, nonexclusive self-device-time shares: matrix multiply 22.6%, memory/pointwise 39.4%,
+and repeated kernels averaging at most 25 microseconds 44.7%. The launch share overlaps operator
 categories and must not be added to them.
 
 High self-device-time rows include repeated allocation/layout paths (`empty_strided`, `_to_copy`,

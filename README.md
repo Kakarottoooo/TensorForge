@@ -11,6 +11,9 @@ hardware fingerprinting, explicit host/CUDA timing, profiler analysis, and JSON/
 generation. Curated measurements are checked in only after running on named hardware; results remain
 scoped to their exact model, commit, workload, and environment.
 
+Current measured artifacts: [RTX 3080 Ti baseline report](results/reference/phase2-rtx3080ti/benchmark.md)
+and [512-token profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
+
 ## What is implemented
 
 - Decoder-only Llama-style model with token embedding, grouped-query causal attention, RoPE,

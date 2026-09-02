@@ -7,7 +7,6 @@ from tensorforge.benchmark.hardware import HardwareMetadata
 
 def _metadata() -> HardwareMetadata:
     return HardwareMetadata(
-        hostname="host",
         operating_system="os",
         kernel="kernel",
         python_version="3.11",
