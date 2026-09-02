@@ -11,7 +11,8 @@ KV writes, segmented `torch.compile`, explicit CUDA Graph capture/replay, and sh
 eager fallback on top of the Phase 5 scheduler and the one canonical transactional paged cache.
 Graph hit/miss, fallback reasons, setup cost, steady-state latency, and regressions are measured.
 
-Current measured artifacts: [Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
+Current measured artifacts: [Phase 6 RTX 3080 Ti execution report](results/reference/phase6-rtx3080ti-wsl/execution.md),
+[Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
 [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
 [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
 [Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
@@ -48,6 +49,8 @@ Current measured artifacts: [Phase 5 RTX 3080 Ti scheduler report](results/refer
   [`docs/phase-5-validation.md`](docs/phase-5-validation.md).
 - Address stability, capture boundaries, fallback semantics, and measurement design in
   [`docs/execution-specialization.md`](docs/execution-specialization.md).
+- Measured Phase 6 mode ablation, cold setup costs, graph counters, variance, and claim boundary in
+  [`docs/phase-6-validation.md`](docs/phase-6-validation.md).
 
 ## Baseline architecture
 

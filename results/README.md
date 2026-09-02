@@ -13,6 +13,9 @@ and explicit improvement/regression labels.
 
 Curated reports:
 
+- `reference/phase6-rtx3080ti-wsl/execution.{json,csv,md}`: address-stable eager,
+  segmented `torch.compile`, explicit CUDA Graph, and forced shape-fallback ablation with cold setup
+  cost and steady-state P50/P95/P99 on clean commit `9160667`.
 - `reference/phase5-rtx3080ti-wsl/scheduler.{json,csv,md}`: no/static/continuous request-policy
   ablation with full traces, seeded churn, terminal counts, and P50/P95/P99 on clean commit
   `f3e5b4c`.
