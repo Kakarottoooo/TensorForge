@@ -18,9 +18,10 @@ keeps the mathematical reference, allocator, scheduler, kernels, execution polic
 tools, and raw experimental evidence visible so that every optimization can be explained and
 tested independently.
 
-> **Status:** Phase 7A is complete. The canonical paged decode path contains Triton RMSNorm,
-> fused residual/RMSNorm, Triton SwiGLU, address-stable buckets, segmented `torch.compile`, and CUDA
-> Graph execution. All published results are tied to a clean Git commit and include regressions.
+> **Status:** Phase 8R is complete. The runtime now imports a pinned real Llama checkpoint,
+> performs parallel causal prefill directly into the transactional paged cache, accepts wall-clock
+> arrivals, and compares the same greedy token workload with Transformers SDPA and vLLM. Published
+> results remain tied to a clean Git commit and include regressions.
 
 ## Why this project exists
 
@@ -46,8 +47,13 @@ a collection of disconnected kernel demos.
   rollback, deterministic reclamation, exhaustion behavior, and non-contiguous physical pages.
 - A continuous-batching scheduler with `queued -> prefill -> decode -> completed/failed` lifecycle,
   request/global token budgets, cancellation, failure isolation, and leak-free cache recovery.
+- A strict Hugging Face Llama safetensors importer plus unequal-length parallel SDPA prefill that
+  writes the canonical paged cache without constructing a second cache abstraction.
 - Shape-bucketed decode with persistent host/device controls and intermediate buffers, explicit
   graph hit/miss/fallback accounting, and safe dynamic-eager fallback.
+- Real-checkpoint workloads with external monotonic arrival timestamps and a comparison protocol
+  that pins checkpoint revision and file hashes, token inputs, greedy semantics, timing boundary,
+  hardware, and software versions.
 - Reproducible benchmark manifests with P50/P95/P99 latency, throughput, cold JIT/compile/capture
   cost, hardware/software identity, randomized variant order, numerical gates, and raw samples.
 - Stress coverage for request churn, KV exhaustion, padded lanes, cross-page writes, non-contiguous
@@ -113,6 +119,11 @@ The scheduler owns request state and selection. `PagedKVCache` exclusively owns 
 reservations, pages, and transaction outcomes. Kernels own tensor math. The bucket executor owns
 stable staging and replay buffers. This separation prevents CUDA Graph or batching policy from
 creating a second cache implementation.
+
+Real prompt ingestion follows a separate parallel path before decode: Q/K/V and causal SDPA operate
+over the whole prompt, valid K/V rows are scattered through each request's logical-to-physical
+block table, and reservations commit only after every layer succeeds. Unequal prompt lengths share
+a padded batch while masking both causal and invalid positions.
 
 ## Core implementation
 
@@ -184,6 +195,23 @@ side-stream warmup. Scheduler decisions, cache allocation, transaction completio
 host-to-device control copies stay outside capture. Oversized shapes fall back to dynamic eager and
 record the reason.
 
+### 7. Real checkpoints and parallel prefill
+
+The checkpoint adapter reads a fail-closed Llama configuration subset and maps every safetensors
+key into TensorForge's transparent model hierarchy. Missing and unexpected tensors are rejected;
+the benchmark manifest pins the Hugging Face commit and reports SHA256 identities for config and
+weights.
+
+Parallel prefill reserves the complete prompt transaction, executes causal GQA with PyTorch SDPA,
+and scatters K/V into the same physical pages consumed by Triton decode. Multi-token cache writes
+use vectorized physical-page indexing, while the latency-sensitive one-token case retains direct
+copies. The scheduler preserves caller-supplied monotonic arrival timestamps, so queueing and tail
+latency include requests that arrived while a GPU step was running.
+
+Transformers and vLLM are external references, not causal ablation parents. Reports retain their
+different attention/cache/graph paths, isolated dependency stacks, unsupported workload rows, and
+output-token hashes instead of claiming architectural parity.
+
 ## Correctness invariants
 
 Performance changes are accepted only after these contracts pass:
@@ -198,8 +226,8 @@ Performance changes are accepted only after these contracts pass:
 - every stress or benchmark run terminates with zero leaked sequences, pages, reservations, and
   token budget.
 
-The current full WSL CUDA/Triton suite contains **167 passing tests**. The Windows control suite
-contains **69 passing tests**; Triton-only tests are capability-skipped there because upstream
+The current full WSL CUDA/Triton/real-checkpoint suite contains **180 passing tests**. The Windows
+control suite contains **78 passing tests**; Triton-only tests are capability-skipped there because upstream
 Triton execution requires Linux.
 
 ## Installation
@@ -232,6 +260,16 @@ python -m scripts.smoke_generate --device cuda --dtype fp16
 
 The helper pins the project-tested CUDA/PyTorch/Triton dependency set. A generic Linux environment
 can instead install `.[dev,kernels]`, but version drift should be recorded with new measurements.
+
+Real-checkpoint tests and the Transformers reference require `.[models]`. Install vLLM in a
+separate environment because it owns exact Torch, Triton, and CUDA package versions:
+
+```bash
+python -m pip install -e ".[dev,kernels,models]"
+
+python -m venv ~/.venvs/tensorforge-vllm
+~/.venvs/tensorforge-vllm/bin/python -m pip install -e ".[vllm-reference]"
+```
 
 ## Reproducing the experiments
 
@@ -273,6 +311,33 @@ python -m scripts.benchmark_execution \
 python -m scripts.benchmark_execution \
   --manifest benchmarks/phase7a-cumulative.json \
   --output-dir results/local/phase7a-cumulative
+
+# Pinned TinyLlama checkpoint: run each backend in its documented environment
+python -m scripts.benchmark_checkpoint \
+  --manifest benchmarks/phase8-real-checkpoint.json \
+  --checkpoint-dir /path/to/pinned/checkpoint \
+  --backend tensorforge \
+  --output-dir results/local/phase8-real-tensorforge
+
+python -m scripts.benchmark_checkpoint \
+  --manifest benchmarks/phase8-real-checkpoint.json \
+  --checkpoint-dir /path/to/pinned/checkpoint \
+  --backend transformers_sdpa \
+  --output-dir results/local/phase8-real-transformers
+
+~/.venvs/tensorforge-vllm/bin/python -m scripts.benchmark_checkpoint \
+  --manifest benchmarks/phase8-real-checkpoint.json \
+  --checkpoint-dir /path/to/pinned/checkpoint \
+  --backend vllm \
+  --output-dir results/local/phase8-real-vllm
+
+python -m scripts.compare_checkpoint \
+  --reports results/local/phase8-real-{tensorforge,transformers,vllm}/checkpoint.json \
+  --output-dir results/local/phase8-real-comparison
+
+# Former scalar loop versus vectorized paged-cache writes
+python -m scripts.benchmark_cache_write \
+  --output results/local/phase8-cache-write.json
 ```
 
 For Nsight Systems, use:

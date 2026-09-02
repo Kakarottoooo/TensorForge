@@ -77,3 +77,22 @@ an optimization ratio.
 Power management, clock state, competing GPU processes, and thermal state can affect results. Final
 release experiments will add repeated randomized case order and between-run variance rather than
 over-interpreting one suite.
+
+## Real-checkpoint external references
+
+Real-checkpoint reports pin the upstream repository and immutable commit, then hash the local
+`config.json` and `model.safetensors`. Model load and tokenization are outside the timing boundary;
+every backend consumes the same host token IDs, precision, greedy sampling rule, output budget,
+warmups, and repetitions. Backends execute in separate dependency environments when their
+Torch/Triton requirements conflict, and each report retains that software identity.
+
+The comparison is deliberately not an ablation. vLLM uses its own FlashAttention, paged cache,
+scheduler, sampling path, and CUDA Graph defaults; Transformers uses SDPA and a contiguous cache;
+TensorForge uses parallel SDPA prefill followed by custom paged Triton decode. Offline vLLM exposes
+first-token and finish times but not every intermediate token timestamp, so the report interpolates
+intermediate timestamps while TPOT continues to use the observed endpoints.
+
+Greedy-token hashes expose free-running divergence but do not replace a logit gate. In BF16, two
+backends can satisfy teacher-forced logit tolerances yet choose different tokens when top logits are
+exactly or nearly tied. TensorForge therefore tests long teacher-forced prefill/decode against
+Transformers and reports tied-argmax divergence separately from cache or attention corruption.

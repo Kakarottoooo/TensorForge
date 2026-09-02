@@ -23,3 +23,9 @@ class BatchTokenExecutor(Protocol):
     def release_request(self, request_id: str) -> None: ...
 
     def append_tokens(self, tokens: dict[str, int]) -> BatchExecutionResult: ...
+
+
+class BatchPrefillExecutor(Protocol):
+    def prefill_prompts(
+        self, prompts: dict[str, tuple[int, ...]]
+    ) -> BatchExecutionResult: ...

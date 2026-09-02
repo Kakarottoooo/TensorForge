@@ -209,12 +209,30 @@ class PagedKVCache:
             if tensor.dtype != self.config.dtype or tensor.device != self.config.device:
                 raise ValueError(f"{name} must share cache dtype and device")
         sequence = self._sequence(reservation.request_id)
-        for source_index in range(reservation.token_count):
-            position = reservation.start_position + source_index
-            logical_block, block_offset = divmod(position, self.config.block_size)
+        if reservation.token_count == 1:
+            logical_block, block_offset = divmod(
+                reservation.start_position, self.config.block_size
+            )
             physical_block = sequence.blocks[logical_block]
-            self.key_cache[layer_index, physical_block, block_offset].copy_(keys[source_index])
-            self.value_cache[layer_index, physical_block, block_offset].copy_(values[source_index])
+            self.key_cache[layer_index, physical_block, block_offset].copy_(keys[0])
+            self.value_cache[layer_index, physical_block, block_offset].copy_(values[0])
+            state.written_layers.add(layer_index)
+            return
+        positions = torch.arange(
+            reservation.start_position,
+            reservation.end_position,
+            dtype=torch.int64,
+            device=self.config.device,
+        )
+        logical_blocks = torch.div(
+            positions, self.config.block_size, rounding_mode="floor"
+        )
+        block_offsets = positions.remainder(self.config.block_size)
+        physical_blocks = self.block_tables[sequence.slot].index_select(
+            0, logical_blocks
+        )
+        self.key_cache[layer_index, physical_blocks, block_offsets] = keys
+        self.value_cache[layer_index, physical_blocks, block_offsets] = values
         state.written_layers.add(layer_index)
 
     def commit(

@@ -38,9 +38,11 @@ profiling, and metrics consume public boundaries so instrumentation does not con
 | 4 — decode attention and cache | GQA decode-attention Triton kernel plus logical-to-physical paged KV cache | Attention/cache oracle equivalence, ownership/reuse/exhaustion tests, allocator accounting and churn stress |
 | 5 — continuous batching | Explicit queued/prefill/decode/completed/failed lifecycle, token budgets, reclamation | Seeded arrivals and cancellations; no/static/continuous P50/P95/P99 and throughput comparison |
 | 6 — execution specialization | Separate eager, torch.compile and bucketed CUDA Graph decode executors | Capture eligibility/fallback tests; setup versus steady state; buffer-address stability and ablation rows |
-| 7 — speculative decoding | Draft/target proposal, verification, rejection rollback, and paged-cache commit protocol | Distribution/correctness equivalence, accept-length metrics, cache rollback stress, net speedup or regression |
-| 8 — scale and external reference | Optional NCCL multi-GPU execution and semantically matched vLLM reference | World-size identity, scaling efficiency/communication cost; fair-comparison checklist or explicit non-comparable result |
-| 9 — release study | Full workload matrix, randomized repeated ablations, hotspot/roofline analysis, failures, final report | Clean-checkout reproduction; all performance and resume claims traceable to raw result IDs |
+| 7A — cumulative decode | Canonical paged path combining Triton fusions, stable buckets, compile, and CUDA Graph | One-parent-at-a-time ablation, graph/fallback counters, address stability, regression retention |
+| 8R — real-model boundary | Pinned checkpoint import, parallel prefill into the canonical cache, wall-clock arrivals, external references | Full-prefix and teacher-forced gates; file hashes; B1/B4 tails; Transformers/vLLM boundaries |
+| 9 — adaptive runtime | Shape/workload policy selects only empirically positive fusion, compile, and graph variants | Held-out validation, policy overhead, safe fallback, and no cross-phase speedup multiplication |
+| 10 — speculative decode | Draft/target proposal, verification, rejection rollback, and paged-cache commit protocol | Distribution equivalence, accept-length metrics, rollback stress, net speedup or regression |
+| 11 — multi-GPU scale | Optional tensor parallel execution with torch.distributed/NCCL | World-size identity, collective cost, topology, scaling efficiency, and single-GPU fallback |
 
 ## Benchmark experiment design
 
@@ -66,6 +68,8 @@ back to eager execution for ineligible requests; they are not assumed to help pr
 - Triton is supported primarily on Linux; Windows development requires Linux/WSL or a rented GPU.
 - Explicit attention materializes the score matrix and cannot make 2048-token high-batch cases fit
   by assumption. Phase 2 records capacity failures before optimized attention is considered.
-- Randomly initialized weights validate runtime mathematics, not language quality. A compatible
-  checkpoint adapter is future work and must not blur the baseline/optimized comparison.
+- The real-checkpoint adapter intentionally supports unsharded Llama safetensors without rope
+  scaling. Sharded checkpoints and other architectures fail closed rather than guessing a map.
+- External runtime rows are references, not one-factor ablations; attention, cache, graph,
+  sampling, and instrumentation differences remain explicit in the report.
 - FP16/BF16 tolerances will be derived per operator; exact token equality alone can hide logit drift.

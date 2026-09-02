@@ -33,3 +33,9 @@ stable eager buckets, Triton RMSNorm, fused residual/RMSNorm, Triton SwiGLU acti
 compile, and explicit CUDA Graph. It covers B1/B4/B8 at context 32 plus B1 contexts 128/512/2,048.
 Long-prefix cache priming is excluded setup through the readable full-prefix path and is not a
 production prefill-kernel claim.
+
+`phase8-real-checkpoint.json` pins TinyLlama 1.1B Chat to a full Hugging Face commit SHA and fixes
+BF16 B1/B4 burst plus wall-clock-staggered request cases. TensorForge, Transformers SDPA, and vLLM
+consume the same generated token IDs and greedy output budget. Comparison tooling rejects different
+checkpoint file hashes, workload identities, or physical GPUs; unsupported arrival semantics remain
+failed rows rather than silently becoming burst traffic.
