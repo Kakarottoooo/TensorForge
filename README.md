@@ -11,7 +11,8 @@ stable-buffer interfaces for later CUDA Graph capture, and an incremental Llama 
 token-by-token against the full-prefix oracle. Results remain scoped to their exact model, commit,
 workload, and environment.
 
-Current measured artifacts: [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
+Current measured artifacts: [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
+[Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
 [Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
 [512-token baseline profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
 
@@ -38,6 +39,8 @@ Current measured artifacts: [Phase 3 RTX 3080 Ti kernel report](results/referenc
   [`docs/phase-3-validation.md`](docs/phase-3-validation.md).
 - Paged ownership, append/rollback, online-softmax, split-KV, and stable-buffer contracts in
   [`docs/paged-cache-and-attention.md`](docs/paged-cache-and-attention.md).
+- Measured Phase 4 evidence, split-KV ablation, failures, and claim boundary in
+  [`docs/phase-4-validation.md`](docs/phase-4-validation.md).
 
 ## Baseline architecture
 

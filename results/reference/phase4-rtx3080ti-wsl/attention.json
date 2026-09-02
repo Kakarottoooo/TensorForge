@@ -1,0 +1,939 @@
+{
+  "cases": [
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 1,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c1-b1",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 686.703076,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 16
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 0.0631510394329604,
+          "arithmetic_intensity_flops_per_byte": 0.5038961038961038,
+          "effective_logical_bandwidth_gbps": 0.12532551640046263,
+          "empirical_copy_bandwidth_pct": 0.015609275436255073,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 3080,
+          "modeled_flops": 1552,
+          "p05_ms": 0.023552000522613525,
+          "p50_ms": 0.02457600086927414,
+          "p95_ms": 0.027648000046610832,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 0.2526041577318416,
+          "arithmetic_intensity_flops_per_byte": 0.5038961038961038,
+          "effective_logical_bandwidth_gbps": 0.5013020656018505,
+          "empirical_copy_bandwidth_pct": 0.06243710174502029,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 3080,
+          "modeled_flops": 1552,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 4.0
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 17,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c17-b1",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 1.1920928955078125e-07,
+        "maximum_relative_error": 0.0005476451478898525,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 83.404896,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 32
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 1.4069009919033753,
+          "arithmetic_intensity_flops_per_byte": 1.7760427367988494,
+          "effective_logical_bandwidth_gbps": 0.7921549198974697,
+          "empirical_copy_bandwidth_pct": 0.09866278382890058,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 19468,
+          "modeled_flops": 34576,
+          "p05_ms": 0.023552000522613525,
+          "p50_ms": 0.02457600086927414,
+          "p95_ms": 0.22118400037288666,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 5.627603967613501,
+          "arithmetic_intensity_flops_per_byte": 1.7760427367988494,
+          "effective_logical_bandwidth_gbps": 3.1686196795898787,
+          "empirical_copy_bandwidth_pct": 0.3946511353156023,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 19468,
+          "modeled_flops": 34576,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 4.0
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 128,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c128-b1",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 4.76837158203125e-07,
+        "maximum_relative_error": 0.0005681818001903594,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 82.491135,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 1.142936356129367,
+          "arithmetic_intensity_flops_per_byte": 1.980233710835411,
+          "effective_logical_bandwidth_gbps": 0.5771724569051957,
+          "empirical_copy_bandwidth_pct": 0.07188674830802455,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 133156,
+          "modeled_flops": 263680,
+          "p05_ms": 0.026623999699950218,
+          "p50_ms": 0.23070400953292847,
+          "p95_ms": 0.5447167158126831,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 28.611110099111677,
+          "arithmetic_intensity_flops_per_byte": 1.980233710835411,
+          "effective_logical_bandwidth_gbps": 14.448350183393941,
+          "empirical_copy_bandwidth_pct": 1.7995399826753078,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 133156,
+          "modeled_flops": 263680,
+          "p05_ms": 0.008191999979317188,
+          "p50_ms": 0.009216000325977802,
+          "p95_ms": 0.009216000325977802,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 25.032986260061918
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 512,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c512-b1",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 4.76837158203125e-07,
+        "maximum_relative_error": 0.0005537098622880876,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 88.729502,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 36.83928520898999,
+          "arithmetic_intensity_flops_per_byte": 2.0063061762538275,
+          "effective_logical_bandwidth_gbps": 18.36174639993197,
+          "empirical_copy_bandwidth_pct": 2.2869529308889014,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 526468,
+          "modeled_flops": 1056256,
+          "p05_ms": 0.027648000046610832,
+          "p50_ms": 0.028672000393271446,
+          "p95_ms": 0.03174399957060814,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 46.88636327016193,
+          "arithmetic_intensity_flops_per_byte": 2.0063061762538275,
+          "effective_logical_bandwidth_gbps": 23.369495556111026,
+          "empirical_copy_bandwidth_pct": 2.9106673837757224,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 526468,
+          "modeled_flops": 1056256,
+          "p05_ms": 0.021503999829292297,
+          "p50_ms": 0.02252800017595291,
+          "p95_ms": 0.023552000522613525,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 1.2727272802437577
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 2048,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c2048-b1",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 9.5367431640625e-07,
+        "maximum_relative_error": 0.0005257623270153999,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 9.353714,
+      "selected_autotune_config": {
+        "num_splits": 8,
+        "path": "split_kv",
+        "split_size": 256
+      },
+      "timings": [
+        {
+          "achieved_gflops": 31.001056492932726,
+          "arithmetic_intensity_flops_per_byte": 2.012919842492985,
+          "effective_logical_bandwidth_gbps": 15.401038749033429,
+          "empirical_copy_bandwidth_pct": 1.9181972094966977,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 2099716,
+          "modeled_flops": 4226560,
+          "p05_ms": 0.03993599861860275,
+          "p50_ms": 0.13633599877357483,
+          "p95_ms": 0.4618239998817444,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 58.1338010088863,
+          "arithmetic_intensity_flops_per_byte": 2.012919842492985,
+          "effective_logical_bandwidth_gbps": 28.88033580954126,
+          "empirical_copy_bandwidth_pct": 3.597041762047797,
+          "implementation": "triton_one_pass_ablation",
+          "logical_bytes": 2099716,
+          "modeled_flops": 4226560,
+          "p05_ms": 0.07168000191450119,
+          "p50_ms": 0.0727040022611618,
+          "p95_ms": 0.07475200295448303,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 1.8752199952327107
+        },
+        {
+          "achieved_gflops": 206.37500521347116,
+          "arithmetic_intensity_flops_per_byte": 2.012919842492985,
+          "effective_logical_bandwidth_gbps": 102.52519790250435,
+          "empirical_copy_bandwidth_pct": 12.76949897499759,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 2099716,
+          "modeled_flops": 4226560,
+          "p05_ms": 0.01945599913597107,
+          "p50_ms": 0.020479999482631683,
+          "p95_ms": 0.021503999829292297,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 6.657031358286716
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 8,
+        "block_size": 16,
+        "context_length": 128,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c128-b8",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0001220703125,
+        "maximum_relative_error": 0.0007806401117704809,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 0.160578,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 46.81818145251263,
+          "arithmetic_intensity_flops_per_byte": 1.980233710835411,
+          "effective_logical_bandwidth_gbps": 23.642755497158575,
+          "empirical_copy_bandwidth_pct": 2.9447018709896144,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 1065248,
+          "modeled_flops": 2109440,
+          "p05_ms": 0.04403200000524521,
+          "p50_ms": 0.04505600035190582,
+          "p95_ms": 0.04608000069856644,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 206.00000520399786,
+          "arithmetic_intensity_flops_per_byte": 1.980233710835411,
+          "effective_logical_bandwidth_gbps": 104.02812762797154,
+          "empirical_copy_bandwidth_pct": 12.956688660864833,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 1065248,
+          "modeled_flops": 2109440,
+          "p05_ms": 0.009216000325977802,
+          "p50_ms": 0.010239999741315842,
+          "p95_ms": 0.011264000087976456,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 4.400000145519156
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 8,
+        "block_size": 16,
+        "context_length": 512,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c512-b8",
+        "precision": "fp16",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 3.0517578125e-05,
+        "maximum_relative_error": 0.008849557489156723,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 0.218608,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 28.05908064898826,
+          "arithmetic_intensity_flops_per_byte": 2.0063061762538275,
+          "effective_logical_bandwidth_gbps": 13.985442990251938,
+          "empirical_copy_bandwidth_pct": 1.7418849568935781,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 4211744,
+          "modeled_flops": 8450048,
+          "p05_ms": 0.19466239213943481,
+          "p50_ms": 0.30115199089050293,
+          "p95_ms": 0.5830144286155701,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 358.78260073434785,
+          "arithmetic_intensity_flops_per_byte": 2.0063061762538275,
+          "effective_logical_bandwidth_gbps": 178.82744168403363,
+          "empirical_copy_bandwidth_pct": 22.27293270340451,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 4211744,
+          "modeled_flops": 8450048,
+          "p05_ms": 0.02252800017595291,
+          "p50_ms": 0.023552000522613525,
+          "p95_ms": 0.023584000766277313,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 12.786684112092768
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 1,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c1-b1",
+        "precision": "fp16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 73.423566,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 16
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 0.5482954502630424,
+          "arithmetic_intensity_flops_per_byte": 0.6028894962905115,
+          "effective_logical_bandwidth_gbps": 0.9094460156241266,
+          "empirical_copy_bandwidth_pct": 0.11327137330055576,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 20488,
+          "modeled_flops": 12352,
+          "p05_ms": 0.021503999829292297,
+          "p50_ms": 0.02252800017595291,
+          "p95_ms": 0.02638399973511696,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 2.0104165955565123,
+          "arithmetic_intensity_flops_per_byte": 0.6028894962905115,
+          "effective_logical_bandwidth_gbps": 3.3346352987177643,
+          "empirical_copy_bandwidth_pct": 0.41532835732207,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 20488,
+          "modeled_flops": 12352,
+          "p05_ms": 0.006144000217318535,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.0071680000983178616,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 3.6666665656117035
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 128,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c128-b1",
+        "precision": "fp16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 3.0517578125e-05,
+        "maximum_relative_error": 0.0008488964522257447,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 90.764722,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 68.40000172792938,
+          "arithmetic_intensity_flops_per_byte": 3.8861048847067177,
+          "effective_logical_bandwidth_gbps": 17.601172319643013,
+          "empirical_copy_bandwidth_pct": 2.19222353619029,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 540708,
+          "modeled_flops": 2101248,
+          "p05_ms": 0.030719999223947525,
+          "p50_ms": 0.030719999223947525,
+          "p95_ms": 0.03481600061058998,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 170.99999395158397,
+          "arithmetic_intensity_flops_per_byte": 3.8861048847067177,
+          "effective_logical_bandwidth_gbps": 44.0029281310788,
+          "empirical_copy_bandwidth_pct": 5.480558508173122,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 540708,
+          "modeled_flops": 2101248,
+          "p05_ms": 0.011264000087976456,
+          "p50_ms": 0.01228800043463707,
+          "p95_ms": 0.01228800043463707,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 2.499999848417555
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 512,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c512-b1",
+        "precision": "fp16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 6.103515625e-05,
+        "maximum_relative_error": 0.007246376946568489,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 85.155933,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 164.40000415309342,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 41.28257916788567,
+          "empirical_copy_bandwidth_pct": 5.141739427519761,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 2113668,
+          "modeled_flops": 8417280,
+          "p05_ms": 0.050175998359918594,
+          "p50_ms": 0.05119999870657921,
+          "p95_ms": 0.055296000093221664,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 222.16215248377878,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 55.787265306142096,
+          "empirical_copy_bandwidth_pct": 6.948296045447567,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 2113668,
+          "modeled_flops": 8417280,
+          "p05_ms": 0.03686400130391121,
+          "p50_ms": 0.03788800165057182,
+          "p95_ms": 0.03891199827194214,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 1.3513512583424012
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 2048,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c2048-b1",
+        "precision": "fp16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 3.0517578125e-05,
+        "maximum_relative_error": 0.0009259259095415473,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 6.353852,
+      "selected_autotune_config": {
+        "num_splits": 8,
+        "path": "split_kv",
+        "split_size": 256
+      },
+      "timings": [
+        {
+          "achieved_gflops": 153.5215857913343,
+          "arithmetic_intensity_flops_per_byte": 4.007063939502526,
+          "effective_logical_bandwidth_gbps": 38.31273673421689,
+          "empirical_copy_bandwidth_pct": 4.771845970218652,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 8405508,
+          "modeled_flops": 33681408,
+          "p05_ms": 0.12697599828243256,
+          "p50_ms": 0.21939200162887573,
+          "p95_ms": 0.5236735343933105,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 253.01538392659387,
+          "arithmetic_intensity_flops_per_byte": 4.007063939502526,
+          "effective_logical_bandwidth_gbps": 63.14233756849049,
+          "empirical_copy_bandwidth_pct": 7.864369260974585,
+          "implementation": "triton_one_pass_ablation",
+          "logical_bytes": 8405508,
+          "modeled_flops": 33681408,
+          "p05_ms": 0.13209599256515503,
+          "p50_ms": 0.13312000036239624,
+          "p95_ms": 0.35737600922584534,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 1.6480769308264638
+        },
+        {
+          "achieved_gflops": 888.9729342453105,
+          "arithmetic_intensity_flops_per_byte": 4.007063939502526,
+          "effective_logical_bandwidth_gbps": 221.85144726082802,
+          "empirical_copy_bandwidth_pct": 27.63156654516125,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 8405508,
+          "modeled_flops": 33681408,
+          "p05_ms": 0.03686400130391121,
+          "p50_ms": 0.03788800165057182,
+          "p95_ms": 0.03891199827194214,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 5.790540331270403
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 8,
+        "block_size": 16,
+        "context_length": 512,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c512-b8",
+        "precision": "fp16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 6.103515625e-05,
+        "maximum_relative_error": 0.05882352963089943,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 0.223648,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 126.46153811726873,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 31.755829240473307,
+          "empirical_copy_bandwidth_pct": 3.955184064331538,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 16909344,
+          "modeled_flops": 67338240,
+          "p05_ms": 0.5273600220680237,
+          "p50_ms": 0.532480001449585,
+          "p95_ms": 1.0788860321044922,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 926.1971542930014,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 232.5778976961892,
+          "empirical_copy_bandwidth_pct": 28.96754443783461,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 16909344,
+          "modeled_flops": 67338240,
+          "p05_ms": 0.07168000191450119,
+          "p50_ms": 0.0727040022611618,
+          "p95_ms": 0.07577600330114365,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 7.323943454128573
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 512,
+        "head_dim": 128,
+        "kv_heads": 8,
+        "name": "7b-c512-b1-bf16",
+        "precision": "bf16",
+        "query_heads": 32,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 0.03,
+        "maximum_absolute_error": 2.384185791015625e-07,
+        "maximum_relative_error": 0.006329114083200693,
+        "rtol": 0.03
+      },
+      "first_call_wall_ms": 78.401098,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 149.45454428724423,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 37.529616184151045,
+          "empirical_copy_bandwidth_pct": 4.6743084158812795,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 2113668,
+          "modeled_flops": 8417280,
+          "p05_ms": 0.055296000093221664,
+          "p50_ms": 0.05632000043988228,
+          "p95_ms": 0.3983359932899475,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 228.33332525698833,
+          "arithmetic_intensity_flops_per_byte": 3.9823094260782677,
+          "effective_logical_bandwidth_gbps": 57.33691203444438,
+          "empirical_copy_bandwidth_pct": 7.141304327445539,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 2113668,
+          "modeled_flops": 8417280,
+          "p05_ms": 0.03686400130391121,
+          "p50_ms": 0.03686400130391121,
+          "p95_ms": 0.03788800165057182,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 1.5277777356715432
+        }
+      ]
+    },
+    {
+      "case": {
+        "batch": 1,
+        "block_size": 16,
+        "context_length": 128,
+        "head_dim": 64,
+        "kv_heads": 4,
+        "name": "default-c128-b1-fp32",
+        "precision": "fp32",
+        "query_heads": 8,
+        "seed": 17
+      },
+      "correctness": {
+        "atol": 1e-05,
+        "maximum_absolute_error": 1.043081283569336e-07,
+        "maximum_relative_error": 0.0006543214549310505,
+        "rtol": 1e-05
+      },
+      "first_call_wall_ms": 73.885319,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_TOKENS": 64
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8,
+        "path": "one_pass"
+      },
+      "timings": [
+        {
+          "achieved_gflops": 2.278761024140597,
+          "arithmetic_intensity_flops_per_byte": 0.9902507173008457,
+          "effective_logical_bandwidth_gbps": 2.3011960348303306,
+          "empirical_copy_bandwidth_pct": 0.2866136423943118,
+          "implementation": "torch_expanded_gqa",
+          "logical_bytes": 266276,
+          "modeled_flops": 263680,
+          "p05_ms": 0.020479999482631683,
+          "p50_ms": 0.1157120019197464,
+          "p95_ms": 0.3705856204032898,
+          "performance_outcome": "baseline",
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 19.807692530922996,
+          "arithmetic_intensity_flops_per_byte": 0.9902507173008457,
+          "effective_logical_bandwidth_gbps": 20.00270455235153,
+          "empirical_copy_bandwidth_pct": 2.4913340379145303,
+          "implementation": "triton_auto_preallocated",
+          "logical_bytes": 266276,
+          "modeled_flops": 263680,
+          "p05_ms": 0.01228800043463707,
+          "p50_ms": 0.013311999849975109,
+          "p95_ms": 0.014336000196635723,
+          "performance_outcome": "improvement",
+          "speedup_vs_torch": 8.69230793448084
+        }
+      ]
+    }
+  ],
+  "empirical_copy_ceiling": {
+    "buffer_mib": 256,
+    "effective_bandwidth_gbps": 802.8913123627366,
+    "implementation": "torch.copy_",
+    "logical_bytes": 536870912,
+    "p05_ms": 0.6594560146331787,
+    "p50_ms": 0.6686719655990601,
+    "p95_ms": 1.3085696697235107
+  },
+  "finished_at_utc": "2026-09-02T04:15:35.106471+00:00",
+  "gpu_runtime_state_after": {
+    "gpu_selector": "0",
+    "memory_clock_mhz": 9251,
+    "power_draw_w": 205.43,
+    "power_limit_w": 350.0,
+    "sm_clock_mhz": 1950,
+    "temperature_c": 59.0
+  },
+  "gpu_runtime_state_before": {
+    "gpu_selector": "0",
+    "memory_clock_mhz": 9501,
+    "power_draw_w": 124.32,
+    "power_limit_w": 350.0,
+    "sm_clock_mhz": 1755,
+    "temperature_c": 54.0
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 9 5900XT 16-Core Processor",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "cudnn_version": 90100,
+    "fingerprint_sha256": "77278e66c8912b496682306deb107db0d1c325287febc4504b8bf666e266ea0c",
+    "git_commit": "42e4782fc71656cb27af082f0509db5c5f7098f7",
+    "git_dirty": false,
+    "gpus": [
+      {
+        "compute_capability": "8.6",
+        "driver_version": "591.86",
+        "gpu_uuid_sha256_16": "90530f9d34a9c8ce",
+        "multiprocessor_count": 80,
+        "name": "NVIDIA GeForce RTX 3080 Ti",
+        "physical_index": "0",
+        "total_memory_bytes": 12884377600,
+        "visible_index": 0,
+        "vram_mib_nvidia_smi": "12288"
+      }
+    ],
+    "kernel": "6.6.87.2-microsoft-standard-WSL2",
+    "logical_cpu_count": 32,
+    "nvidia_driver_cuda_version": "13.1",
+    "operating_system": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.31",
+    "python_version": "3.11.13",
+    "torch_cuda_runtime": "12.1",
+    "torch_version": "2.5.1+cu121",
+    "triton_version": "3.1.0",
+    "visible_cuda_devices": null
+  },
+  "logical_work_model": {
+    "bytes": "query + output + unique logical K/V + block table + context length",
+    "caveat": "Logical bytes are not measured DRAM transactions. The PyTorch baseline expands GQA heads in the timed region, so semantic-work bandwidth is not physical traffic.",
+    "flops": "QK dot + 3 softmax ops per score + probability/value dot"
+  },
+  "measurement": {
+    "autotune_excluded_from_steady_state": true,
+    "latency_quantiles": [
+      0.05,
+      0.5,
+      0.95
+    ],
+    "repetition_ms": 500,
+    "torch_baseline": "contiguous logical KV with timed repeat_interleave, score matmul, FP32 softmax, and value aggregation",
+    "triton_buffers": "output and split-KV workspace are preallocated outside timing",
+    "warmup_ms": 50
+  },
+  "schema_version": "1.0",
+  "started_at_utc": "2026-09-02T04:15:14.489320+00:00",
+  "suite_id": "0b888e8f-4ad3-4cc2-8a02-2febfb25b132"
+}

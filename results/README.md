@@ -13,6 +13,8 @@ and explicit improvement/regression labels.
 
 Curated reports:
 
+- `reference/phase4-rtx3080ti-wsl/attention.{json,csv,md}`: paged GQA decode matrix plus forced
+  one-pass versus auto split-KV long-context ablation on clean commit `42e4782`.
 - `reference/phase3-rtx3080ti-wsl/kernels.{json,csv,md}`: 22 correctness-gated Phase 3 kernel cases
   measured on clean commit `0bd1d9e` under WSL2, PyTorch 2.5.1+cu121, and Triton 3.1.0.
 - `reference/phase2-rtx3080ti/`: Phase 2 eager baseline and profiler summaries on Windows.
