@@ -14,8 +14,8 @@ continuous batching, speculative decoding, external runtimes, and tensor-paralle
 ## Curated experiment
 
 The immutable input is `benchmarks/phase2-reference.json`. The measured code commit is
-`14534447b392f76d2f69073ea65b2c48a43a2a39`, recorded with `git_dirty=false`. Hardware fingerprint
-`b43cb88537a4c0abefefdd19b186820b9f8d79b5f65f5ab0de2890b62e5fb626` identifies an RTX 3080 Ti
+`4efb225a8911bee3cdac12ece4e7069bcf86ecee`, recorded with `git_dirty=false`. Hardware fingerprint
+`98ff48931a4550afe452c95d04112eda140d4d2cc15b9a54ee33234002f12e7b` identifies an RTX 3080 Ti
 (12,288 MiB reported by `nvidia-smi`, compute capability 8.6), driver 591.86 (driver CUDA capability
 13.1), PyTorch 2.5.1+cu118 with CUDA runtime 11.8 and cuDNN 9.1.0, Python 3.12.2, and Windows 11.
 Triton and Nsight Systems were unavailable in this environment.
@@ -29,9 +29,9 @@ The curated outputs are `results/reference/phase2-rtx3080ti/benchmark.{json,csv,
 
 | Prompt / output | Batch | Repetitions | TTFT P50 / P95 / P99 ms | TPOT P50 / P95 / P99 ms | Mean output tok/s | Peak allocated MiB |
 |---:|---:|---:|---:|---:|---:|---:|
-| 128 / 32 | 1 | 10 | 17.850 / 31.563 / 31.672 | 13.778 / 17.577 / 17.938 | 70.199 | 136.675 |
-| 512 / 32 | 4 | 10 | 14.976 / 29.727 / 29.727 | 15.840 / 21.032 / 21.032 | 246.574 | 383.442 |
-| 2048 / 32 | 1 | 5 | 23.997 / 24.561 / 24.668 | 25.193 / 25.513 / 25.525 | 39.783 | 522.945 |
+| 128 / 32 | 1 | 10 | 18.204 / 34.001 / 35.090 | 13.575 / 17.524 / 18.172 | 71.885 | 136.675 |
+| 512 / 32 | 4 | 10 | 16.131 / 27.495 / 27.495 | 19.045 / 27.096 / 27.096 | 215.246 | 383.442 |
+| 2048 / 32 | 1 | 5 | 23.957 / 24.533 / 24.575 | 25.138 / 25.330 / 25.362 | 39.884 | 522.945 |
 
 All requested batch sizes completed; there was no OOM adjustment. Each measured repetition obtained
 4–8 utilization samples depending on duration. The raw JSON retains every request trace, CUDA time,
@@ -46,8 +46,8 @@ randomized repeated suites before optimization ratios are claimed.
 
 The curated profile uses prompt 512, batch 1, FP16, one prefill region and four full-prefix decode
 steps. `torch.profiler` gives a **kernel-launch/latency-dominant candidate** classification with
-provisional, nonexclusive self-device-time shares: matrix multiply 22.6%, memory/pointwise 39.4%,
-and repeated kernels averaging at most 25 microseconds 44.7%. The launch share overlaps operator
+provisional, nonexclusive self-device-time shares: matrix multiply 25.3%, memory/pointwise 42.2%,
+and repeated kernels averaging at most 25 microseconds 59.9%. The launch share overlaps operator
 categories and must not be added to them.
 
 High self-device-time rows include repeated allocation/layout paths (`empty_strided`, `_to_copy`,

@@ -1,0 +1,426 @@
+{
+  "assessment": {
+    "classification": "kernel-launch/latency-dominant candidate",
+    "compute_share": 0.25266281945589447,
+    "confidence": "provisional",
+    "evidence": "torch.profiler nonexclusive self-device-time shares: matrix multiply 25.3%, memory/pointwise 42.2%, short repeated kernels 59.9%. Launch candidates overlap operator categories.",
+    "launch_candidate_share": 0.5986644682605111,
+    "memory_or_pointwise_share": 0.42197856553998353,
+    "required_confirmation": "Use Nsight Compute counters and arithmetic-intensity/roofline analysis; profiler timings alone cannot distinguish DRAM bandwidth from dependency or launch stalls."
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 9 5900XT 16-Core Processor",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "cudnn_version": 90100,
+    "fingerprint_sha256": "98ff48931a4550afe452c95d04112eda140d4d2cc15b9a54ee33234002f12e7b",
+    "git_commit": "4efb225a8911bee3cdac12ece4e7069bcf86ecee",
+    "git_dirty": false,
+    "gpus": [
+      {
+        "compute_capability": "8.6",
+        "driver_version": "591.86",
+        "gpu_uuid_sha256_16": "90530f9d34a9c8ce",
+        "multiprocessor_count": 80,
+        "name": "NVIDIA GeForce RTX 3080 Ti",
+        "physical_index": "0",
+        "total_memory_bytes": 12884377600,
+        "visible_index": 0,
+        "vram_mib_nvidia_smi": "12288"
+      }
+    ],
+    "kernel": "11",
+    "logical_cpu_count": 32,
+    "nvidia_driver_cuda_version": "13.1",
+    "operating_system": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.2",
+    "torch_cuda_runtime": "11.8",
+    "torch_version": "2.5.1+cu118",
+    "triton_version": null,
+    "visible_cuda_devices": null
+  },
+  "operators": [
+    {
+      "calls": 1,
+      "category": "region",
+      "input_shapes": "[]",
+      "name": "tensorforge::decode",
+      "self_cpu_time_us": 55379.50000000012,
+      "self_device_time_us": 38529.0,
+      "total_device_time_us": 197510.0
+    },
+    {
+      "calls": 1,
+      "category": "region",
+      "input_shapes": "[]",
+      "name": "tensorforge::prefill",
+      "self_cpu_time_us": 14186.099999999999,
+      "self_device_time_us": 10475.0,
+      "total_device_time_us": 55034.0
+    },
+    {
+      "calls": 500,
+      "category": "other",
+      "input_shapes": "[[], [], [], [], [], []]",
+      "name": "aten::empty_strided",
+      "self_cpu_time_us": 1509.1000000000747,
+      "self_device_time_us": 6821.0,
+      "total_device_time_us": 6821.0
+    },
+    {
+      "calls": 8,
+      "category": "matrix_multiply",
+      "input_shapes": "[[8, 514, 514], [8, 514, 64]]",
+      "name": "aten::bmm",
+      "self_cpu_time_us": 5000.8000000000175,
+      "self_device_time_us": 5021.0,
+      "total_device_time_us": 5021.0
+    },
+    {
+      "calls": 125,
+      "category": "memory_or_layout",
+      "input_shapes": "[[], []]",
+      "name": "aten::cat",
+      "self_cpu_time_us": 2396.6000000001204,
+      "self_device_time_us": 2772.0,
+      "total_device_time_us": 2772.0
+    },
+    {
+      "calls": 8,
+      "category": "matrix_multiply",
+      "input_shapes": "[[8, 513, 513], [8, 513, 64]]",
+      "name": "aten::bmm",
+      "self_cpu_time_us": 2696.5999999999767,
+      "self_device_time_us": 2709.0,
+      "total_device_time_us": 2709.0
+    },
+    {
+      "calls": 245,
+      "category": "other",
+      "input_shapes": "[[], [], [], [], [], []]",
+      "name": "aten::empty",
+      "self_cpu_time_us": 817.1999999998803,
+      "self_device_time_us": 2234.0,
+      "total_device_time_us": 2234.0
+    },
+    {
+      "calls": 93,
+      "category": "memory_or_layout",
+      "input_shapes": "[[512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 3247.2999999998156,
+      "self_device_time_us": 2106.0,
+      "total_device_time_us": 5234.0
+    },
+    {
+      "calls": 93,
+      "category": "memory_or_layout",
+      "input_shapes": "[[512], [], [], [], []]",
+      "name": "aten::to",
+      "self_cpu_time_us": 1361.2999999999417,
+      "self_device_time_us": 1917.0,
+      "total_device_time_us": 7151.0
+    },
+    {
+      "calls": 1,
+      "category": "matrix_multiply",
+      "input_shapes": "[[512, 512], [512, 32000]]",
+      "name": "aten::mm",
+      "self_cpu_time_us": 231.0,
+      "self_device_time_us": 1917.0,
+      "total_device_time_us": 1917.0
+    },
+    {
+      "calls": 93,
+      "category": "memory_or_layout",
+      "input_shapes": "[[512], [512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 1319.400000000175,
+      "self_device_time_us": 1809.0,
+      "total_device_time_us": 1809.0
+    },
+    {
+      "calls": 80,
+      "category": "other",
+      "input_shapes": "[[1376, 512]]",
+      "name": "aten::t",
+      "self_cpu_time_us": 1498.0999999998403,
+      "self_device_time_us": 1651.0,
+      "total_device_time_us": 3403.0
+    },
+    {
+      "calls": 80,
+      "category": "other",
+      "input_shapes": "[[512, 512]]",
+      "name": "aten::t",
+      "self_cpu_time_us": 1188.2999999999422,
+      "self_device_time_us": 1458.0,
+      "total_device_time_us": 3218.0
+    },
+    {
+      "calls": 8,
+      "category": "matrix_multiply",
+      "input_shapes": "[[8, 513, 64], [8, 64, 513]]",
+      "name": "aten::bmm",
+      "self_cpu_time_us": 1373.2000000000116,
+      "self_device_time_us": 1444.0,
+      "total_device_time_us": 1444.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 516, 512], [1, 516, 512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 667.0000000000582,
+      "self_device_time_us": 1349.0,
+      "total_device_time_us": 1349.0
+    },
+    {
+      "calls": 80,
+      "category": "other",
+      "input_shapes": "[[256, 512]]",
+      "name": "aten::t",
+      "self_cpu_time_us": 1212.1000000000747,
+      "self_device_time_us": 1241.0,
+      "total_device_time_us": 2868.0
+    },
+    {
+      "calls": 16,
+      "category": "matrix_multiply",
+      "input_shapes": "[[1, 512, 512], [512, 512]]",
+      "name": "aten::matmul",
+      "self_cpu_time_us": 935.3999999999983,
+      "self_device_time_us": 1236.0,
+      "total_device_time_us": 2432.0
+    },
+    {
+      "calls": 16,
+      "category": "other",
+      "input_shapes": "[[1, 4, 512, 64], [], [], []]",
+      "name": "aten::repeat_interleave",
+      "self_cpu_time_us": 974.0999999999995,
+      "self_device_time_us": 1234.0,
+      "total_device_time_us": 3676.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 516, 512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 1551.299999999639,
+      "self_device_time_us": 1228.0,
+      "total_device_time_us": 3247.0
+    },
+    {
+      "calls": 8,
+      "category": "pointwise",
+      "input_shapes": "[[1, 516, 1376]]",
+      "name": "aten::silu",
+      "self_cpu_time_us": 128.69999999995343,
+      "self_device_time_us": 1228.0,
+      "total_device_time_us": 1228.0
+    },
+    {
+      "calls": 80,
+      "category": "memory_or_layout",
+      "input_shapes": "[[512, 512], [], []]",
+      "name": "aten::transpose",
+      "self_cpu_time_us": 1364.8000000003099,
+      "self_device_time_us": 1223.0,
+      "total_device_time_us": 1760.0
+    },
+    {
+      "calls": 40,
+      "category": "other",
+      "input_shapes": "[[], [], [], [], []]",
+      "name": "aten::ones",
+      "self_cpu_time_us": 1351.3999999999796,
+      "self_device_time_us": 1208.0,
+      "total_device_time_us": 2380.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 512, 512], [1, 512, 512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 938.0999999999858,
+      "self_device_time_us": 1202.0,
+      "total_device_time_us": 1202.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 514, 512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 1611.900000000198,
+      "self_device_time_us": 1193.0,
+      "total_device_time_us": 2945.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 512, 512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 2015.2000000000123,
+      "self_device_time_us": 1174.0,
+      "total_device_time_us": 3272.0
+    },
+    {
+      "calls": 80,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1376, 512], [], []]",
+      "name": "aten::transpose",
+      "self_cpu_time_us": 1256.300000000172,
+      "self_device_time_us": 1162.0,
+      "total_device_time_us": 1752.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 515, 512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 1394.2000000001572,
+      "self_device_time_us": 1126.0,
+      "total_device_time_us": 2844.0
+    },
+    {
+      "calls": 16,
+      "category": "matrix_multiply",
+      "input_shapes": "[[513, 512], [512, 256]]",
+      "name": "aten::mm",
+      "self_cpu_time_us": 472.1000000000204,
+      "self_device_time_us": 1116.0,
+      "total_device_time_us": 1116.0
+    },
+    {
+      "calls": 80,
+      "category": "memory_or_layout",
+      "input_shapes": "[[256, 512], [], []]",
+      "name": "aten::transpose",
+      "self_cpu_time_us": 1259.0000000000707,
+      "self_device_time_us": 1115.0,
+      "total_device_time_us": 1627.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 513, 512], [], [], [], [], [], []]",
+      "name": "aten::_to_copy",
+      "self_cpu_time_us": 1464.1999999999098,
+      "self_device_time_us": 1057.0,
+      "total_device_time_us": 2718.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 514, 512], [1, 514, 512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 750.5999999998603,
+      "self_device_time_us": 1023.0,
+      "total_device_time_us": 1023.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 515, 512], [1, 515, 512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 733.5000000000582,
+      "self_device_time_us": 1017.0,
+      "total_device_time_us": 1017.0
+    },
+    {
+      "calls": 40,
+      "category": "other",
+      "input_shapes": "[[], [], [], [0]]",
+      "name": "aten::arange",
+      "self_cpu_time_us": 1318.8000000001339,
+      "self_device_time_us": 1015.0,
+      "total_device_time_us": 1391.0
+    },
+    {
+      "calls": 17,
+      "category": "other",
+      "input_shapes": "[[1, 512, 512], []]",
+      "name": "aten::pow",
+      "self_cpu_time_us": 978.7999999999975,
+      "self_device_time_us": 1004.0,
+      "total_device_time_us": 1262.0
+    },
+    {
+      "calls": 16,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 8, 516, 516], [1, 8, 516, 516], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 282.8999999999942,
+      "self_device_time_us": 1001.0,
+      "total_device_time_us": 1001.0
+    },
+    {
+      "calls": 5,
+      "category": "other",
+      "input_shapes": "[[1, 32000], [], []]",
+      "name": "aten::argmax",
+      "self_cpu_time_us": 2506.80000000001,
+      "self_device_time_us": 978.0,
+      "total_device_time_us": 978.0
+    },
+    {
+      "calls": 16,
+      "category": "matrix_multiply",
+      "input_shapes": "[[514, 512], [512, 1376]]",
+      "name": "aten::mm",
+      "self_cpu_time_us": 493.00000000001455,
+      "self_device_time_us": 962.0,
+      "total_device_time_us": 962.0
+    },
+    {
+      "calls": 16,
+      "category": "matrix_multiply",
+      "input_shapes": "[[513, 512], [512, 1376]]",
+      "name": "aten::mm",
+      "self_cpu_time_us": 507.79999999996653,
+      "self_device_time_us": 919.0,
+      "total_device_time_us": 919.0
+    },
+    {
+      "calls": 51,
+      "category": "memory_or_layout",
+      "input_shapes": "[[1, 513, 512], [1, 513, 512], []]",
+      "name": "aten::copy_",
+      "self_cpu_time_us": 669.9999999999636,
+      "self_device_time_us": 891.0,
+      "total_device_time_us": 891.0
+    },
+    {
+      "calls": 49,
+      "category": "other",
+      "input_shapes": "[[1, 515, 512], []]",
+      "name": "aten::reshape",
+      "self_cpu_time_us": 670.4999999998545,
+      "self_device_time_us": 889.0,
+      "total_device_time_us": 1139.0
+    }
+  ],
+  "schema_version": "1.0",
+  "spec": {
+    "batch_size": 1,
+    "decode_steps": 4,
+    "model": {
+      "hidden_size": 512,
+      "intermediate_size": 1376,
+      "max_position_embeddings": 2048,
+      "num_attention_heads": 8,
+      "num_hidden_layers": 8,
+      "num_key_value_heads": 4,
+      "rms_norm_eps": 1e-06,
+      "rope_theta": 10000.0,
+      "tie_word_embeddings": false,
+      "vocab_size": 32000
+    },
+    "precision": "fp16",
+    "prompt_length": 512,
+    "row_limit": 40,
+    "seed": 7
+  },
+  "trace_file": "trace.json"
+}
