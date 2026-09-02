@@ -26,6 +26,8 @@ scoped to their exact model, commit, workload, and environment.
   [`docs/phase-1-validation.md`](docs/phase-1-validation.md).
 - A rigorous timing, synchronization, capacity, profiler, fair-comparison, and ablation contract in
   [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md).
+- Measured Phase 2 evidence and its claim boundary in
+  [`docs/phase-2-validation.md`](docs/phase-2-validation.md).
 
 ## Baseline architecture
 

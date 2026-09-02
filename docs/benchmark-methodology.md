@@ -59,6 +59,8 @@ silently.
 analysis ranks self-device time and forms a **provisional candidate** classification from matrix-
 multiply share, pointwise/layout share, and repeated short-kernel share. It cannot observe achieved
 FLOP/s, DRAM bytes, occupancy, cache hit rate, or stall reasons, so it does not make a roofline claim.
+The short-kernel share is nonexclusive and overlaps the operator categories; the shares must not be
+summed as a partition of runtime.
 Phase 3 must confirm important kernels with Nsight Compute counters and explicit arithmetic-
 intensity models. Nsight Systems capture is supported through `scripts.nsys_profile` when `nsys` is
 installed.

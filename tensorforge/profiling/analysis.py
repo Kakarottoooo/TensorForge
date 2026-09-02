@@ -98,8 +98,9 @@ def assess_bottleneck(operators: Iterable[OperatorProfile]) -> BottleneckAssessm
         memory_or_pointwise_share=memory_share,
         launch_candidate_share=launch_share,
         evidence=(
-            f"torch.profiler self-device-time shares: matrix multiply {compute_share:.1%}, "
-            f"memory/pointwise {memory_share:.1%}, short repeated kernels {launch_share:.1%}."
+            f"torch.profiler nonexclusive self-device-time shares: matrix multiply "
+            f"{compute_share:.1%}, memory/pointwise {memory_share:.1%}, short repeated kernels "
+            f"{launch_share:.1%}. Launch candidates overlap operator categories."
         ),
         required_confirmation=(
             "Use Nsight Compute counters and arithmetic-intensity/roofline analysis; profiler "
