@@ -163,7 +163,26 @@ def _norm_launch_shape(inputs: Tensor) -> tuple[int, int, int]:
     return inputs.numel() // columns, columns, triton.next_power_of_2(columns)
 
 
-def rms_norm(inputs: Tensor, weight: Tensor, eps: float = 1e-6) -> Tensor:
+def _output_or_empty(output: Tensor | None, reference: Tensor, name: str) -> Tensor:
+    if output is None:
+        return torch.empty_like(reference)
+    if (
+        output.shape != reference.shape
+        or output.dtype != reference.dtype
+        or output.device != reference.device
+        or not output.is_contiguous()
+    ):
+        raise ValueError(f"{name} must be contiguous and share input shape, dtype, and device")
+    return output
+
+
+def rms_norm(
+    inputs: Tensor,
+    weight: Tensor,
+    eps: float = 1e-6,
+    *,
+    output: Tensor | None = None,
+) -> Tensor:
     """Run autotuned RMSNorm and return a tensor shaped like ``inputs``."""
 
     _require_triton()
@@ -171,7 +190,7 @@ def rms_norm(inputs: Tensor, weight: Tensor, eps: float = 1e-6) -> Tensor:
     if eps <= 0:
         raise ValueError("eps must be positive")
     rows, columns, block_size = _norm_launch_shape(inputs)
-    output = torch.empty_like(inputs)
+    output = _output_or_empty(output, inputs, "output")
     _RMS_NORM_KERNEL[(rows,)](
         inputs,
         weight,
@@ -187,7 +206,13 @@ def rms_norm(inputs: Tensor, weight: Tensor, eps: float = 1e-6) -> Tensor:
 
 
 def residual_rms_norm(
-    inputs: Tensor, residual: Tensor, weight: Tensor, eps: float = 1e-6
+    inputs: Tensor,
+    residual: Tensor,
+    weight: Tensor,
+    eps: float = 1e-6,
+    *,
+    residual_output: Tensor | None = None,
+    norm_output: Tensor | None = None,
 ) -> tuple[Tensor, Tensor]:
     """Fuse residual addition and RMSNorm while preserving the residual sum."""
 
@@ -201,8 +226,8 @@ def residual_rms_norm(
     if eps <= 0:
         raise ValueError("eps must be positive")
     rows, columns, block_size = _norm_launch_shape(inputs)
-    residual_output = torch.empty_like(inputs)
-    norm_output = torch.empty_like(inputs)
+    residual_output = _output_or_empty(residual_output, inputs, "residual_output")
+    norm_output = _output_or_empty(norm_output, inputs, "norm_output")
     _RESIDUAL_RMS_NORM_KERNEL[(rows,)](
         inputs,
         residual,
@@ -218,7 +243,7 @@ def residual_rms_norm(
     return residual_output, norm_output
 
 
-def swiglu(gate: Tensor, up: Tensor) -> Tensor:
+def swiglu(gate: Tensor, up: Tensor, *, output: Tensor | None = None) -> Tensor:
     """Fuse SiLU and gating after the two SwiGLU matrix projections."""
 
     _require_triton()
@@ -226,7 +251,7 @@ def swiglu(gate: Tensor, up: Tensor) -> Tensor:
     _validate_common(up)
     if up.shape != gate.shape or up.dtype != gate.dtype or up.device != gate.device:
         raise ValueError("gate and up tensors must share shape, dtype, and device")
-    output = torch.empty_like(gate)
+    output = _output_or_empty(output, gate, "output")
 
     def grid(meta: dict[str, Any]) -> tuple[int]:
         return (triton.cdiv(gate.numel(), meta["BLOCK_SIZE"]),)

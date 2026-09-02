@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.1",
+  "model": {
+    "vocab_size": 512,
+    "hidden_size": 256,
+    "intermediate_size": 688,
+    "num_hidden_layers": 4,
+    "num_attention_heads": 8,
+    "num_key_value_heads": 4,
+    "max_position_embeddings": 2048
+  },
+  "precision": "fp16",
+  "block_size": 16,
+  "num_blocks": 256,
+  "warmup_repetitions": 1,
+  "measured_repetitions": 5,
+  "seed": 20260905,
+  "variants": [
+    {
+      "name": "paged_dynamic_eager",
+      "mode": "eager",
+      "fusion_level": "none",
+      "stable_bucket": false,
+      "parent": null
+    },
+    {
+      "name": "stable_bucket_eager",
+      "mode": "eager",
+      "fusion_level": "none",
+      "stable_bucket": true,
+      "parent": "paged_dynamic_eager"
+    },
+    {
+      "name": "triton_rms_norm",
+      "mode": "eager",
+      "fusion_level": "rms_norm",
+      "stable_bucket": true,
+      "parent": "stable_bucket_eager"
+    },
+    {
+      "name": "triton_residual_rms_norm",
+      "mode": "eager",
+      "fusion_level": "residual_rms_norm",
+      "stable_bucket": true,
+      "parent": "triton_rms_norm"
+    },
+    {
+      "name": "triton_all_fusions",
+      "mode": "eager",
+      "fusion_level": "all",
+      "stable_bucket": true,
+      "parent": "triton_residual_rms_norm"
+    },
+    {
+      "name": "triton_all_compile",
+      "mode": "torch_compile",
+      "fusion_level": "all",
+      "stable_bucket": true,
+      "parent": "triton_all_fusions"
+    },
+    {
+      "name": "triton_all_cuda_graph",
+      "mode": "cuda_graph",
+      "fusion_level": "all",
+      "stable_bucket": true,
+      "parent": "triton_all_fusions"
+    }
+  ],
+  "cases": [
+    {
+      "name": "b1-c32",
+      "batch_size": 1,
+      "initial_context": 16,
+      "decode_steps": 16,
+      "batch_buckets": [1],
+      "context_buckets": [32],
+      "setup_method": "reference_prefill"
+    },
+    {
+      "name": "b4-c32",
+      "batch_size": 4,
+      "initial_context": 16,
+      "decode_steps": 16,
+      "batch_buckets": [4],
+      "context_buckets": [32],
+      "setup_method": "reference_prefill"
+    },
+    {
+      "name": "b8-c32",
+      "batch_size": 8,
+      "initial_context": 16,
+      "decode_steps": 16,
+      "batch_buckets": [8],
+      "context_buckets": [32],
+      "setup_method": "reference_prefill"
+    },
+    {
+      "name": "b1-c128",
+      "batch_size": 1,
+      "initial_context": 112,
+      "decode_steps": 16,
+      "batch_buckets": [1],
+      "context_buckets": [128],
+      "setup_method": "reference_prefill"
+    },
+    {
+      "name": "b1-c512",
+      "batch_size": 1,
+      "initial_context": 496,
+      "decode_steps": 16,
+      "batch_buckets": [1],
+      "context_buckets": [512],
+      "setup_method": "reference_prefill"
+    },
+    {
+      "name": "b1-c2048",
+      "batch_size": 1,
+      "initial_context": 2032,
+      "decode_steps": 16,
+      "batch_buckets": [1],
+      "context_buckets": [2048],
+      "setup_method": "reference_prefill"
+    }
+  ]
+}

@@ -5,11 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 6 execution specialization implemented.** TensorForge now adds
-address-stable batch/context decode buckets, persistent pinned control staging, capture-safe masked
-KV writes, segmented `torch.compile`, explicit CUDA Graph capture/replay, and shape-aware dynamic
-eager fallback on top of the Phase 5 scheduler and the one canonical transactional paged cache.
-Graph hit/miss, fallback reasons, setup cost, steady-state latency, and regressions are measured.
+**Current status: Phase 7A unified decode path implemented.** TensorForge now runs its Triton
+RMSNorm, fused residual/RMSNorm, and SwiGLU activation inside the address-stable paged decode bucket,
+including segmented `torch.compile` and explicit CUDA Graph modes. The cumulative experiment names
+the causal parent of every row so stable buffers, each fusion, compile, and graph remain separately
+attributable over the one canonical transactional paged cache.
 
 Current measured artifacts: [Phase 6 RTX 3080 Ti execution report](results/reference/phase6-rtx3080ti-wsl/execution.md),
 [Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
@@ -51,6 +51,8 @@ Current measured artifacts: [Phase 6 RTX 3080 Ti execution report](results/refer
   [`docs/execution-specialization.md`](docs/execution-specialization.md).
 - Measured Phase 6 mode ablation, cold setup costs, graph counters, variance, and claim boundary in
   [`docs/phase-6-validation.md`](docs/phase-6-validation.md).
+- Unified decode dataflow and cumulative-ablation rules in
+  [`docs/cumulative-decode-path.md`](docs/cumulative-decode-path.md).
 
 ## Baseline architecture
 
@@ -134,6 +136,10 @@ python -m scripts.benchmark_scheduler \
 python -m scripts.benchmark_execution \
   --manifest benchmarks/phase6-execution.json \
   --output-dir results/local/phase6-execution
+
+python -m scripts.benchmark_execution \
+  --manifest benchmarks/phase7a-cumulative.json \
+  --output-dir results/local/phase7a-cumulative
 ```
 
 ## Correctness policy

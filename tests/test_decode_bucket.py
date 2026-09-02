@@ -285,3 +285,212 @@ def test_cuda_graph_padded_lane_is_masked_and_cache_is_reclaimable() -> None:
     executor.release_request("only")
     assert cache.stats().active_sequences == 0
     assert cache.stats().used_blocks == 0
+
+
+def test_all_triton_fusions_reuse_bucket_and_match_full_prefix() -> None:
+    _require_triton_cuda()
+    from tensorforge.runtime.decode_bucket import (
+        BucketedPagedDecodeExecutor,
+        DecodeExecutionMode,
+        DecodeFusionLevel,
+    )
+
+    config = tiny_config(num_hidden_layers=2, max_position_embeddings=8)
+    torch.manual_seed(41)
+    model = LlamaForCausalLM(config).to(device="cuda", dtype=torch.float16).eval()
+    cache = PagedKVCache(
+        PagedKVCacheConfig(
+            num_layers=2,
+            num_blocks=4,
+            block_size=2,
+            num_kv_heads=config.num_key_value_heads,
+            head_dim=config.head_dim,
+            max_sequences=1,
+            max_sequence_length=8,
+            dtype=torch.float16,
+            device=torch.device("cuda"),
+        )
+    )
+    executor = BucketedPagedDecodeExecutor(
+        model,
+        cache,
+        mode=DecodeExecutionMode.EAGER,
+        batch_buckets=(1,),
+        context_buckets=(8,),
+        fusion_level=DecodeFusionLevel.ALL,
+    )
+    executor.create_request("request")
+
+    first = executor.append_tokens({"request": 7})
+    first_logits = first.logits["request"].clone()
+    addresses = executor.buffer_addresses()
+    second = executor.append_tokens({"request": 13})
+
+    assert not first.errors
+    assert not second.errors
+    assert addresses == executor.buffer_addresses()
+    assert any("norm" in name for name in addresses["b1-c8"])
+    with torch.inference_mode():
+        torch.testing.assert_close(
+            first_logits,
+            model(torch.tensor([[7]], device="cuda"))[0, -1],
+            rtol=4e-3,
+            atol=4e-3,
+        )
+        torch.testing.assert_close(
+            second.logits["request"],
+            model(torch.tensor([[7, 13]], device="cuda"))[0, -1],
+            rtol=4e-3,
+            atol=4e-3,
+        )
+
+
+def test_all_triton_fusions_are_cuda_graph_capture_safe() -> None:
+    _require_triton_cuda()
+    from tensorforge.runtime.decode_bucket import (
+        BucketedPagedDecodeExecutor,
+        DecodeExecutionMode,
+        DecodeFusionLevel,
+    )
+
+    config = tiny_config(num_hidden_layers=1, max_position_embeddings=8)
+    torch.manual_seed(43)
+    model = LlamaForCausalLM(config).to(device="cuda", dtype=torch.float16).eval()
+    cache = PagedKVCache(
+        PagedKVCacheConfig(
+            num_layers=1,
+            num_blocks=4,
+            block_size=2,
+            num_kv_heads=config.num_key_value_heads,
+            head_dim=config.head_dim,
+            max_sequences=1,
+            max_sequence_length=8,
+            dtype=torch.float16,
+            device=torch.device("cuda"),
+        )
+    )
+    executor = BucketedPagedDecodeExecutor(
+        model,
+        cache,
+        mode=DecodeExecutionMode.CUDA_GRAPH,
+        batch_buckets=(1,),
+        context_buckets=(8,),
+        fusion_level=DecodeFusionLevel.ALL,
+    )
+    executor.create_request("request")
+
+    first = executor.append_tokens({"request": 3})
+    first_logits = first.logits["request"].clone()
+    second = executor.append_tokens({"request": 5})
+
+    assert not first.errors
+    assert not second.errors
+    with torch.inference_mode():
+        torch.testing.assert_close(
+            first_logits,
+            model(torch.tensor([[3]], device="cuda"))[0, -1],
+            rtol=4e-3,
+            atol=4e-3,
+        )
+        torch.testing.assert_close(
+            second.logits["request"],
+            model(torch.tensor([[3, 5]], device="cuda"))[0, -1],
+            rtol=4e-3,
+            atol=4e-3,
+        )
+    metrics = executor.metrics()
+    assert metrics.capture_count == 1
+    assert metrics.graph_misses == 1
+    assert metrics.graph_hits == 1
+
+
+def test_all_triton_fusions_compile_as_segmented_decode() -> None:
+    _require_triton_cuda()
+    from torch._logging._internal import trace_log
+
+    from tensorforge.runtime.decode_bucket import (
+        BucketedPagedDecodeExecutor,
+        DecodeExecutionMode,
+        DecodeFusionLevel,
+    )
+
+    config = tiny_config(num_hidden_layers=1, max_position_embeddings=8)
+    torch.manual_seed(47)
+    model = LlamaForCausalLM(config).to(device="cuda", dtype=torch.float16).eval()
+    cache = PagedKVCache(
+        PagedKVCacheConfig(
+            num_layers=1,
+            num_blocks=4,
+            block_size=2,
+            num_kv_heads=config.num_key_value_heads,
+            head_dim=config.head_dim,
+            max_sequences=1,
+            max_sequence_length=8,
+            dtype=torch.float16,
+            device=torch.device("cuda"),
+        )
+    )
+    executor = BucketedPagedDecodeExecutor(
+        model,
+        cache,
+        mode=DecodeExecutionMode.COMPILE,
+        batch_buckets=(1,),
+        context_buckets=(8,),
+        fusion_level=DecodeFusionLevel.ALL,
+    )
+    executor.create_request("request")
+    trace_handlers = list(trace_log.handlers)
+    trace_log.handlers.clear()
+    try:
+        result = executor.append_tokens({"request": 11})
+    finally:
+        trace_log.handlers.extend(trace_handlers)
+
+    assert not result.errors
+    with torch.inference_mode():
+        expected = model(torch.tensor([[11]], device="cuda"))[0, -1]
+    torch.testing.assert_close(result.logits["request"], expected, rtol=4e-3, atol=4e-3)
+    assert executor.metrics().compile_count == 1
+
+
+@pytest.mark.parametrize("fusion_name", ["rms_norm", "residual_rms_norm"])
+def test_intermediate_fusion_level_matches_full_prefix(fusion_name: str) -> None:
+    _require_triton_cuda()
+    from tensorforge.runtime.decode_bucket import (
+        BucketedPagedDecodeExecutor,
+        DecodeExecutionMode,
+        DecodeFusionLevel,
+    )
+
+    config = tiny_config(num_hidden_layers=2, max_position_embeddings=8)
+    torch.manual_seed(53)
+    model = LlamaForCausalLM(config).to(device="cuda", dtype=torch.float16).eval()
+    cache = PagedKVCache(
+        PagedKVCacheConfig(
+            num_layers=2,
+            num_blocks=4,
+            block_size=2,
+            num_kv_heads=config.num_key_value_heads,
+            head_dim=config.head_dim,
+            max_sequences=1,
+            max_sequence_length=8,
+            dtype=torch.float16,
+            device=torch.device("cuda"),
+        )
+    )
+    executor = BucketedPagedDecodeExecutor(
+        model,
+        cache,
+        mode=DecodeExecutionMode.EAGER,
+        batch_buckets=(1,),
+        context_buckets=(8,),
+        fusion_level=DecodeFusionLevel(fusion_name),
+    )
+    executor.create_request("request")
+
+    result = executor.append_tokens({"request": 17})
+
+    assert not result.errors
+    with torch.inference_mode():
+        expected = model(torch.tensor([[17]], device="cuda"))[0, -1]
+    torch.testing.assert_close(result.logits["request"], expected, rtol=4e-3, atol=4e-3)

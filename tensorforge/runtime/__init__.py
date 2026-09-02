@@ -5,6 +5,7 @@ from tensorforge.runtime.decode_bucket import (
     BucketedPagedDecodeExecutor,
     DecodeExecutionMetrics,
     DecodeExecutionMode,
+    DecodeFusionLevel,
 )
 from tensorforge.runtime.generation import GenerationConfig, greedy_generate
 from tensorforge.runtime.triton_model import TritonModelExecutor
@@ -14,6 +15,7 @@ __all__ = [
     "BucketedPagedDecodeExecutor",
     "DecodeExecutionMetrics",
     "DecodeExecutionMode",
+    "DecodeFusionLevel",
     "GenerationConfig",
     "TritonModelExecutor",
     "greedy_generate",

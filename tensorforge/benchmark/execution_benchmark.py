@@ -18,15 +18,19 @@ from tensorforge.benchmark.hardware import collect_gpu_runtime_state, collect_ha
 from tensorforge.benchmark.schema import ModelSpec
 from tensorforge.cache.paged import PagedKVCache, PagedKVCacheConfig
 from tensorforge.metrics.statistics import summarize
+from tensorforge.model.layers import apply_rotary_embedding
 from tensorforge.model.llama import LlamaForCausalLM
+from tensorforge.runtime.batch import BatchTokenExecutor
+from tensorforge.runtime.batched_decode import BatchedPagedDecodeExecutor
 from tensorforge.runtime.decode_bucket import (
     BucketedPagedDecodeExecutor,
     DecodeExecutionMetrics,
     DecodeExecutionMode,
+    DecodeFusionLevel,
 )
 
-EXECUTION_BENCHMARK_SCHEMA_VERSION = "1.0"
-_MODES = tuple(DecodeExecutionMode)
+EXECUTION_BENCHMARK_SCHEMA_VERSION = "1.1"
+_SUPPORTED_SCHEMA_VERSIONS = {"1.0", EXECUTION_BENCHMARK_SCHEMA_VERSION}
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +41,7 @@ class ExecutionCase:
     decode_steps: int
     batch_buckets: tuple[int, ...]
     context_buckets: tuple[int, ...]
+    setup_method: str = "token_decode"
 
     def __post_init__(self) -> None:
         if not self.name:
@@ -48,6 +53,37 @@ class ExecutionCase:
             raise ValueError("batch_buckets must contain positive capacities")
         if not self.context_buckets or any(value <= 0 for value in self.context_buckets):
             raise ValueError("context_buckets must contain positive capacities")
+        if self.setup_method not in {"token_decode", "reference_prefill"}:
+            raise ValueError("setup_method must be token_decode or reference_prefill")
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutionVariant:
+    name: str
+    mode: DecodeExecutionMode
+    fusion_level: DecodeFusionLevel = DecodeFusionLevel.NONE
+    stable_bucket: bool = True
+    parent: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("execution variant name must be non-empty")
+        if not self.stable_bucket and (
+            self.mode is not DecodeExecutionMode.EAGER
+            or self.fusion_level is not DecodeFusionLevel.NONE
+        ):
+            raise ValueError("dynamic execution supports only unfused eager mode")
+
+
+_DEFAULT_VARIANTS = (
+    ExecutionVariant(name="eager", mode=DecodeExecutionMode.EAGER),
+    ExecutionVariant(
+        name="torch_compile", mode=DecodeExecutionMode.COMPILE, parent="eager"
+    ),
+    ExecutionVariant(
+        name="cuda_graph", mode=DecodeExecutionMode.CUDA_GRAPH, parent="eager"
+    ),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,10 +96,21 @@ class ExecutionManifest:
     warmup_repetitions: int = 1
     measured_repetitions: int = 5
     seed: int = 7
+    variants: tuple[ExecutionVariant, ...] = _DEFAULT_VARIANTS
 
     def __post_init__(self) -> None:
         if not self.cases:
             raise ValueError("execution manifest requires at least one case")
+        if not self.variants:
+            raise ValueError("execution manifest requires at least one variant")
+        if len({variant.name for variant in self.variants}) != len(self.variants):
+            raise ValueError("execution variant names must be unique")
+        names = {variant.name for variant in self.variants}
+        for variant in self.variants:
+            if variant.parent is not None and variant.parent not in names:
+                raise ValueError(f"unknown parent variant: {variant.parent}")
+            if variant.parent == variant.name:
+                raise ValueError("execution variant cannot parent itself")
         if self.precision not in {"fp16", "bf16", "fp32"}:
             raise ValueError(f"unsupported precision: {self.precision}")
         if self.block_size <= 0 or self.num_blocks <= 0:
@@ -86,7 +133,10 @@ class ExecutionManifest:
 @dataclass(frozen=True, slots=True)
 class ExecutionRun:
     repetition: int
-    mode: str
+    variant: str
+    execution_mode: str
+    fusion_level: str
+    stable_bucket: bool
     setup_wall_ms: float
     measured_host_ms: float
     cuda_step_latency_ms: tuple[float, ...]
@@ -111,13 +161,16 @@ def load_execution_manifest(path: Path) -> ExecutionManifest:
         "warmup_repetitions",
         "measured_repetitions",
         "seed",
+        "variants",
         "cases",
     }
     unknown = set(payload) - allowed
     if unknown:
         raise ValueError(f"unknown execution manifest keys: {sorted(unknown)}")
-    if payload.get("schema_version") != EXECUTION_BENCHMARK_SCHEMA_VERSION:
-        raise ValueError(f"expected execution schema {EXECUTION_BENCHMARK_SCHEMA_VERSION}")
+    if payload.get("schema_version") not in _SUPPORTED_SCHEMA_VERSIONS:
+        raise ValueError(
+            f"expected execution schema in {sorted(_SUPPORTED_SCHEMA_VERSIONS)}"
+        )
     unknown_model = set(payload["model"]) - set(ModelSpec.__dataclass_fields__)
     if unknown_model:
         raise ValueError(f"unknown execution model keys: {sorted(unknown_model)}")
@@ -128,6 +181,7 @@ def load_execution_manifest(path: Path) -> ExecutionManifest:
         "decode_steps",
         "batch_buckets",
         "context_buckets",
+        "setup_method",
     }
     cases = []
     for raw_case in payload["cases"]:
@@ -141,6 +195,27 @@ def load_execution_manifest(path: Path) -> ExecutionManifest:
                     "batch_buckets": tuple(raw_case["batch_buckets"]),
                     "context_buckets": tuple(raw_case["context_buckets"]),
                 }
+            )
+        )
+    variant_keys = {"name", "mode", "fusion_level", "stable_bucket", "parent"}
+    variants = []
+    for raw_variant in payload.get("variants", []):
+        unknown_variant = set(raw_variant) - variant_keys
+        if unknown_variant:
+            raise ValueError(f"unknown execution variant keys: {sorted(unknown_variant)}")
+        variants.append(
+            ExecutionVariant(
+                name=str(raw_variant["name"]),
+                mode=DecodeExecutionMode(raw_variant["mode"]),
+                fusion_level=DecodeFusionLevel(
+                    raw_variant.get("fusion_level", DecodeFusionLevel.NONE.value)
+                ),
+                stable_bucket=bool(raw_variant.get("stable_bucket", True)),
+                parent=(
+                    None
+                    if raw_variant.get("parent") is None
+                    else str(raw_variant["parent"])
+                ),
             )
         )
     defaults = ExecutionManifest.__dataclass_fields__
@@ -157,6 +232,7 @@ def load_execution_manifest(path: Path) -> ExecutionManifest:
             payload.get("measured_repetitions", defaults["measured_repetitions"].default)
         ),
         seed=int(payload.get("seed", defaults["seed"].default)),
+        variants=tuple(variants) if variants else _DEFAULT_VARIANTS,
     )
 
 
@@ -177,13 +253,89 @@ def _metrics_delta(
     return result
 
 
+def _empty_metrics() -> DecodeExecutionMetrics:
+    return DecodeExecutionMetrics(
+        eager_calls=0,
+        compiled_calls=0,
+        graph_calls=0,
+        graph_hits=0,
+        graph_misses=0,
+        shape_fallbacks=0,
+        eager_fallback_calls=0,
+        capture_count=0,
+        capture_time_ms=0.0,
+        capture_warmup_time_ms=0.0,
+        compile_count=0,
+        compile_time_ms=0.0,
+        padded_lanes=0,
+        fallback_reasons={},
+    )
+
+
+def _executor_metrics(executor: BatchTokenExecutor) -> DecodeExecutionMetrics:
+    if isinstance(executor, BucketedPagedDecodeExecutor):
+        return executor.metrics()
+    return _empty_metrics()
+
+
+def _executor_addresses(executor: BatchTokenExecutor) -> dict[str, dict[str, int]]:
+    if isinstance(executor, BucketedPagedDecodeExecutor):
+        return executor.buffer_addresses()
+    return {}
+
+
+@torch.inference_mode()
+def _prime_request_cache(
+    model: LlamaForCausalLM,
+    cache: PagedKVCache,
+    request_id: str,
+    token_ids: list[int],
+) -> None:
+    """Populate a benchmark prefix transaction with the readable full-prefix path."""
+
+    if not token_ids:
+        return
+    device = next(model.parameters()).device
+    reservation = cache.begin_append(request_id, token_count=len(token_ids))
+    try:
+        tokens = torch.tensor([token_ids], dtype=torch.long, device=device)
+        positions = torch.arange(len(token_ids), dtype=torch.long, device=device)
+        hidden_states = model.model.embedding(tokens)
+        for layer_index, layer in enumerate(model.model.layers):
+            attention = layer.attention
+            normalized = layer.input_norm(hidden_states)
+            query = attention._shape(attention.q_proj(normalized), attention.num_heads)
+            key = attention._shape(
+                attention.k_proj(normalized), attention.num_key_value_heads
+            )
+            value = attention._shape(
+                attention.v_proj(normalized), attention.num_key_value_heads
+            )
+            cos, sin = attention.rotary(positions, dtype=query.dtype)
+            _, key = apply_rotary_embedding(query, key, cos, sin)
+            cache.write_layer(
+                reservation,
+                layer_index,
+                key[0].transpose(0, 1).contiguous(),
+                value[0].transpose(0, 1).contiguous(),
+            )
+            hidden_states = hidden_states + attention(normalized)
+            hidden_states = hidden_states + layer.mlp(
+                layer.post_attention_norm(hidden_states)
+            )
+        cache.commit(reservation)
+    except Exception:
+        cache.rollback(reservation)
+        raise
+
+
 def _run_once(
     manifest: ExecutionManifest,
     case: ExecutionCase,
     *,
     model: LlamaForCausalLM,
     device: torch.device,
-    mode: DecodeExecutionMode,
+    variant: ExecutionVariant,
     repetition: int,
 ) -> ExecutionRun:
     dtype = _dtype(manifest.precision)
@@ -201,12 +353,17 @@ def _run_once(
             device=device,
         )
     )
-    executor = BucketedPagedDecodeExecutor(
-        model=model,
-        cache=cache,
-        mode=mode,
-        batch_buckets=case.batch_buckets,
-        context_buckets=case.context_buckets,
+    executor: BatchTokenExecutor = (
+        BucketedPagedDecodeExecutor(
+            model=model,
+            cache=cache,
+            mode=variant.mode,
+            batch_buckets=case.batch_buckets,
+            context_buckets=case.context_buckets,
+            fusion_level=variant.fusion_level,
+        )
+        if variant.stable_bucket
+        else BatchedPagedDecodeExecutor(model=model, cache=cache)
     )
     request_ids = [f"request-{index}" for index in range(case.batch_size)]
     for request_id in request_ids:
@@ -222,7 +379,18 @@ def _run_once(
 
     torch.cuda.synchronize(device)
     setup_started_ns = time.perf_counter_ns()
-    for position in range(case.initial_context):
+    setup_start_position = 0
+    if case.setup_method == "reference_prefill":
+        prefix_length = case.initial_context - 1
+        for index, request_id in enumerate(request_ids):
+            _prime_request_cache(
+                model,
+                cache,
+                request_id,
+                token_rows[index][:prefix_length],
+            )
+        setup_start_position = prefix_length
+    for position in range(setup_start_position, case.initial_context):
         result = executor.append_tokens(
             {
                 request_id: token_rows[index][position]
@@ -233,13 +401,13 @@ def _run_once(
             raise RuntimeError(f"setup failed: {result.errors}")
     torch.cuda.synchronize(device)
     setup_wall_ms = (time.perf_counter_ns() - setup_started_ns) / 1e6
-    addresses_before = executor.buffer_addresses()
-    setup_metrics = executor.metrics()
+    addresses_before = _executor_addresses(executor)
+    setup_metrics = _executor_metrics(executor)
 
     event_factory: Any = torch.cuda.Event
     start_events = [event_factory(enable_timing=True) for _ in range(case.decode_steps)]
     end_events = [event_factory(enable_timing=True) for _ in range(case.decode_steps)]
-    measured_before = executor.metrics()
+    measured_before = _executor_metrics(executor)
     first_logits: torch.Tensor | None = None
     measured_started_ns = time.perf_counter_ns()
     for step in range(case.decode_steps):
@@ -258,8 +426,8 @@ def _run_once(
             first_logits = result.logits[request_ids[0]].clone()
     torch.cuda.synchronize(device)
     measured_host_ms = (time.perf_counter_ns() - measured_started_ns) / 1e6
-    measured_after = executor.metrics()
-    addresses_after = executor.buffer_addresses()
+    measured_after = _executor_metrics(executor)
+    addresses_after = _executor_addresses(executor)
     cuda_step_latency_ms = tuple(
         float(start.elapsed_time(end)) for start, end in zip(start_events, end_events, strict=True)
     )
@@ -275,10 +443,13 @@ def _run_once(
         executor.release_request(request_id)
     stats = cache.stats()
     if stats.active_sequences or stats.used_blocks or stats.reserved_tokens:
-        raise RuntimeError(f"cache state leaked after {case.name}/{mode}")
+        raise RuntimeError(f"cache state leaked after {case.name}/{variant.name}")
     return ExecutionRun(
         repetition=repetition,
-        mode=mode.value,
+        variant=variant.name,
+        execution_mode=variant.mode.value,
+        fusion_level=variant.fusion_level.value,
+        stable_bucket=variant.stable_bucket,
         setup_wall_ms=setup_wall_ms,
         measured_host_ms=measured_host_ms,
         cuda_step_latency_ms=cuda_step_latency_ms,
@@ -340,49 +511,65 @@ def run_execution_suite(
     model.eval()
     case_results: list[dict[str, Any]] = []
     for case in manifest.cases:
-        warmup_runs_by_mode: dict[DecodeExecutionMode, list[ExecutionRun]] = {
-            mode: [] for mode in _MODES
+        warmup_runs_by_variant: dict[str, list[ExecutionRun]] = {
+            variant.name: [] for variant in manifest.variants
         }
         for warmup in range(manifest.warmup_repetitions):
-            for mode in _MODES:
-                warmup_runs_by_mode[mode].append(
+            for variant in manifest.variants:
+                warmup_runs_by_variant[variant.name].append(
                     _run_once(
                         manifest,
                         case,
                         model=model,
                         device=device,
-                        mode=mode,
+                        variant=variant,
                         repetition=-(warmup + 1),
                     )
                 )
-        runs_by_mode: dict[DecodeExecutionMode, list[ExecutionRun]] = {
-            mode: [] for mode in _MODES
+        runs_by_variant: dict[str, list[ExecutionRun]] = {
+            variant.name: [] for variant in manifest.variants
         }
         orders = []
         for repetition in range(manifest.measured_repetitions):
-            order = list(_MODES)
+            order = list(manifest.variants)
             random.Random(manifest.seed + repetition + case.batch_size).shuffle(order)
-            orders.append([mode.value for mode in order])
-            for mode in order:
-                runs_by_mode[mode].append(
+            orders.append([variant.name for variant in order])
+            for variant in order:
+                runs_by_variant[variant.name].append(
                     _run_once(
                         manifest,
                         case,
                         model=model,
                         device=device,
-                        mode=mode,
+                        variant=variant,
                         repetition=repetition,
                     )
                 )
-        eager = _aggregate(runs_by_mode[DecodeExecutionMode.EAGER])
-        modes = []
-        for mode in _MODES:
-            aggregate = _aggregate(runs_by_mode[mode])
-            eager_latency = eager["cuda_step_latency_ms"]["mean"]
+        aggregates = {
+            variant.name: _aggregate(runs_by_variant[variant.name])
+            for variant in manifest.variants
+        }
+        baseline = aggregates[manifest.variants[0].name]
+        variants = []
+        for variant in manifest.variants:
+            aggregate = aggregates[variant.name]
+            baseline_latency = baseline["cuda_step_latency_ms"]["mean"]
             latency = aggregate["cuda_step_latency_ms"]["mean"]
-            aggregate["mean_latency_speedup_vs_eager"] = eager_latency / latency
-            aggregate["mean_latency_change_pct_vs_eager"] = (latency / eager_latency - 1) * 100
-            cold_setup = warmup_runs_by_mode[mode][0]
+            aggregate["mean_latency_speedup_vs_baseline"] = baseline_latency / latency
+            aggregate["mean_latency_change_pct_vs_baseline"] = (
+                latency / baseline_latency - 1
+            ) * 100
+            parent = (
+                aggregates[variant.parent]
+                if variant.parent is not None
+                else aggregate
+            )
+            parent_latency = parent["cuda_step_latency_ms"]["mean"]
+            aggregate["mean_latency_speedup_vs_parent"] = parent_latency / latency
+            aggregate["mean_latency_change_pct_vs_parent"] = (
+                latency / parent_latency - 1
+            ) * 100
+            cold_setup = warmup_runs_by_variant[variant.name][0]
             aggregate["cold_setup_wall_ms"] = cold_setup.setup_wall_ms
             aggregate["cold_capture_time_ms"] = cold_setup.setup_metrics[
                 "capture_time_ms"
@@ -390,18 +577,22 @@ def run_execution_suite(
             aggregate["cold_compile_time_ms"] = cold_setup.setup_metrics[
                 "compile_time_ms"
             ]
-            modes.append(
+            variants.append(
                 {
-                    "mode": mode.value,
+                    "variant": asdict(variant),
                     "warmup_runs": [
-                        asdict(run) for run in warmup_runs_by_mode[mode]
+                        asdict(run) for run in warmup_runs_by_variant[variant.name]
                     ],
-                    "runs": [asdict(run) for run in runs_by_mode[mode]],
+                    "runs": [asdict(run) for run in runs_by_variant[variant.name]],
                     "aggregate": aggregate,
                 }
             )
         case_results.append(
-            {"case": asdict(case), "mode_order_by_repetition": orders, "modes": modes}
+            {
+                "case": asdict(case),
+                "variant_order_by_repetition": orders,
+                "variants": variants,
+            }
         )
     return {
         "schema_version": EXECUTION_BENCHMARK_SCHEMA_VERSION,
@@ -421,10 +612,15 @@ def run_execution_suite(
             "setup_excluded": True,
             "warmups_excluded": True,
             "correctness_gate": "first measured logit versus independent full-prefix model",
-            "mode_order": "seed-shuffled for every measured repetition",
+            "variant_order": "seed-shuffled for every measured repetition",
+            "reference_prefill": (
+                "optional setup-only full-prefix cache priming writes a multi-token transaction; "
+                "it is excluded from timing and is not a production prefill-kernel claim"
+            ),
             "compile_boundary": (
                 "PyTorch model segments use torch.compile with Inductor cudagraphs disabled; "
-                "custom Triton KV-write and paged-attention launches remain explicit graph breaks"
+                "custom Triton norm, activation, KV-write, and paged-attention launches remain "
+                "explicit graph breaks"
             ),
             "cuda_graph_boundary": (
                 "explicit torch.cuda.CUDAGraph captures bucketed model/KV kernels; cache ownership "
@@ -447,22 +643,35 @@ def write_execution_reports(
     )
     rows = []
     for case_result in result["cases"]:
-        for mode_result in case_result["modes"]:
-            aggregate = mode_result["aggregate"]
+        for variant_result in case_result["variants"]:
+            aggregate = variant_result["aggregate"]
+            variant = variant_result["variant"]
             latency = aggregate["cuda_step_latency_ms"]
             metrics = aggregate["measured_metric_totals"]
             rows.append(
                 {
                     "suite_id": result["suite_id"],
                     "case": case_result["case"]["name"],
-                    "mode": mode_result["mode"],
+                    "variant": variant["name"],
+                    "execution_mode": variant["mode"],
+                    "fusion_level": variant["fusion_level"],
+                    "stable_bucket": variant["stable_bucket"],
+                    "parent": variant["parent"],
                     "latency_p50_ms": latency["p50"],
                     "latency_p95_ms": latency["p95"],
                     "latency_p99_ms": latency["p99"],
                     "tokens_per_second_mean": aggregate["tokens_per_second"]["mean"],
-                    "latency_speedup_vs_eager": aggregate["mean_latency_speedup_vs_eager"],
-                    "latency_change_pct_vs_eager": aggregate[
-                        "mean_latency_change_pct_vs_eager"
+                    "latency_speedup_vs_baseline": aggregate[
+                        "mean_latency_speedup_vs_baseline"
+                    ],
+                    "latency_change_pct_vs_baseline": aggregate[
+                        "mean_latency_change_pct_vs_baseline"
+                    ],
+                    "latency_speedup_vs_parent": aggregate[
+                        "mean_latency_speedup_vs_parent"
+                    ],
+                    "latency_change_pct_vs_parent": aggregate[
+                        "mean_latency_change_pct_vs_parent"
                     ],
                     "graph_hits": metrics["graph_hits"],
                     "graph_misses": metrics["graph_misses"],
@@ -485,8 +694,13 @@ def write_execution_reports(
 
     hardware = result["hardware"]
     gpu = hardware["gpus"][0]
+    is_cumulative = len(result["manifest"]["variants"]) > 3
     lines = [
-        "# TensorForge Phase 6 execution-specialization report",
+        (
+            "# TensorForge Phase 7A cumulative decode-ablation report"
+            if is_cumulative
+            else "# TensorForge Phase 6 execution-specialization report"
+        ),
         "",
         f"- Suite: `{result['suite_id']}`",
         f"- GPU: {gpu['name']} (compute capability {gpu['compute_capability']})",
@@ -497,17 +711,19 @@ def write_execution_reports(
         "Setup/capture/compile costs are excluded from steady-state latency and reported "
         "separately. Every run passes an independent full-prefix numerical gate.",
         "",
-        "| Case | Mode | CUDA latency P50/P95/P99 ms | Mean tok/s | Mean change vs eager | "
-        "Graph hit/miss | Shape fallback | Cold setup/capture/compile ms |",
-        "|---|---|---:|---:|---:|---:|---:|---:|",
+        "| Case | Variant | Mode/fusion | CUDA latency P50/P95/P99 ms | Mean tok/s | "
+        "Change vs baseline/parent | Graph hit/miss | Cold setup/capture/compile ms |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
-            f"| {row['case']} | {row['mode']} | {row['latency_p50_ms']:.3f}/"
+            f"| {row['case']} | {row['variant']} | {row['execution_mode']}/"
+            f"{row['fusion_level']} | {row['latency_p50_ms']:.3f}/"
             f"{row['latency_p95_ms']:.3f}/{row['latency_p99_ms']:.3f} | "
             f"{row['tokens_per_second_mean']:.2f} | "
-            f"{row['latency_change_pct_vs_eager']:+.1f}% | "
-            f"{row['graph_hits']}/{row['graph_misses']} | {row['shape_fallbacks']} | "
+            f"{row['latency_change_pct_vs_baseline']:+.1f}%/"
+            f"{row['latency_change_pct_vs_parent']:+.1f}% | "
+            f"{row['graph_hits']}/{row['graph_misses']} | "
             f"{row['cold_setup_wall_ms']:.2f}/{row['cold_capture_time_ms']:.2f}/"
             f"{row['cold_compile_time_ms']:.2f} |"
         )
@@ -516,11 +732,11 @@ def write_execution_reports(
             "",
             "## Interpretation boundary",
             "",
-            "This isolates execution specialization over the same address-stable bucket, model "
-            "weights, transactional PagedKVCache, Triton KV writer, and Triton GQA attention. "
-            "`torch.compile` is intentionally a hybrid segmented path because custom Triton calls "
-            "are explicit graph boundaries. The fallback case measures dynamic eager delegation, "
-            "not a captured or compiled shape. Regressions are retained.",
+            "Rows share model weights, transactional PagedKVCache, and paged GQA attention. Each "
+            "variant names its causal parent; compile and CUDA Graph both compare with the fully "
+            "fused eager parent rather than with each other. `torch.compile` remains segmented "
+            "because custom Triton calls are explicit graph boundaries. Reference prefill is an "
+            "excluded setup mechanism, not a production prefill claim. Regressions are retained.",
         ]
     )
     markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

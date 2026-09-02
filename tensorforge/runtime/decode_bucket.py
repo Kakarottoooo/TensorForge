@@ -19,6 +19,7 @@ from tensorforge.kernels.triton_attention import (
     paged_gqa_decode_attention,
 )
 from tensorforge.kernels.triton_cache import paged_kv_write_token
+from tensorforge.kernels.triton_ops import residual_rms_norm, rms_norm, swiglu
 from tensorforge.model.layers import apply_batched_rotary_embedding
 from tensorforge.model.llama import LlamaForCausalLM
 from tensorforge.runtime.batch import BatchExecutionResult
@@ -78,10 +79,60 @@ def _paged_attention_eager(
     )
 
 
+@compiler_disable
+def _rms_norm_eager(
+    inputs: Tensor, weight: Tensor, eps: float, output: Tensor
+) -> Tensor:
+    return rms_norm(inputs, weight, eps, output=output)
+
+
+@compiler_disable
+def _residual_rms_norm_eager(
+    inputs: Tensor,
+    residual: Tensor,
+    weight: Tensor,
+    eps: float,
+    residual_output: Tensor,
+    norm_output: Tensor,
+) -> tuple[Tensor, Tensor]:
+    return residual_rms_norm(
+        inputs,
+        residual,
+        weight,
+        eps,
+        residual_output=residual_output,
+        norm_output=norm_output,
+    )
+
+
+@compiler_disable
+def _swiglu_eager(gate: Tensor, up: Tensor, output: Tensor) -> Tensor:
+    return swiglu(gate, up, output=output)
+
+
 class DecodeExecutionMode(StrEnum):
     EAGER = "eager"
     COMPILE = "torch_compile"
     CUDA_GRAPH = "cuda_graph"
+
+
+class DecodeFusionLevel(StrEnum):
+    NONE = "none"
+    RMS_NORM = "rms_norm"
+    RESIDUAL_RMS_NORM = "residual_rms_norm"
+    ALL = "all"
+
+    @property
+    def uses_triton_norm(self) -> bool:
+        return self is not DecodeFusionLevel.NONE
+
+    @property
+    def uses_fused_residual_norm(self) -> bool:
+        return self in {DecodeFusionLevel.RESIDUAL_RMS_NORM, DecodeFusionLevel.ALL}
+
+    @property
+    def uses_triton_swiglu(self) -> bool:
+        return self is DecodeFusionLevel.ALL
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,6 +180,7 @@ class _DecodeBucket:
         batch_capacity: int,
         context_capacity: int,
         mode: DecodeExecutionMode,
+        fusion_level: DecodeFusionLevel,
         metrics: _MutableMetrics,
     ) -> None:
         self.model = model
@@ -136,6 +188,7 @@ class _DecodeBucket:
         self.batch_capacity = batch_capacity
         self.context_capacity = context_capacity
         self.mode = mode
+        self.fusion_level = fusion_level
         self.metrics = metrics
         config = model.config
         parameter = next(model.parameters())
@@ -199,6 +252,51 @@ class _DecodeBucket:
             )
             for _ in range(config.num_hidden_layers)
         )
+        hidden_shape = (batch_capacity, 1, config.hidden_size)
+
+        def allocate_hidden_outputs() -> tuple[Tensor, ...]:
+            return tuple(
+                torch.empty(hidden_shape, dtype=parameter.dtype, device=device)
+                for _ in range(config.num_hidden_layers)
+            )
+
+        self.input_norm_outputs = (
+            allocate_hidden_outputs()
+            if fusion_level.uses_triton_norm
+            else ()
+        )
+        self.residual_outputs = (
+            allocate_hidden_outputs()
+            if fusion_level.uses_triton_norm
+            else ()
+        )
+        self.post_norm_outputs = (
+            allocate_hidden_outputs()
+            if fusion_level.uses_triton_norm
+            else ()
+        )
+        self.hidden_outputs = (
+            allocate_hidden_outputs()
+            if fusion_level.uses_triton_norm
+            else ()
+        )
+        self.swiglu_outputs = (
+            tuple(
+                torch.empty(
+                    (batch_capacity, 1, config.intermediate_size),
+                    dtype=parameter.dtype,
+                    device=device,
+                )
+                for _ in range(config.num_hidden_layers)
+            )
+            if fusion_level.uses_triton_swiglu
+            else ()
+        )
+        self.final_norm_output = (
+            torch.empty(hidden_shape, dtype=parameter.dtype, device=device)
+            if fusion_level.uses_triton_norm
+            else None
+        )
         self._compiled_forward: Callable[[], None] | None = None
         self._graph: Any | None = None
 
@@ -242,6 +340,31 @@ class _DecodeBucket:
                 f"attention_output_{index}": output.data_ptr()
                 for index, output in enumerate(self.attention_outputs)
             },
+            **{
+                f"input_norm_output_{index}": output.data_ptr()
+                for index, output in enumerate(self.input_norm_outputs)
+            },
+            **{
+                f"residual_output_{index}": output.data_ptr()
+                for index, output in enumerate(self.residual_outputs)
+            },
+            **{
+                f"post_norm_output_{index}": output.data_ptr()
+                for index, output in enumerate(self.post_norm_outputs)
+            },
+            **{
+                f"hidden_output_{index}": output.data_ptr()
+                for index, output in enumerate(self.hidden_outputs)
+            },
+            **{
+                f"swiglu_output_{index}": output.data_ptr()
+                for index, output in enumerate(self.swiglu_outputs)
+            },
+            **(
+                {"final_norm_output": self.final_norm_output.data_ptr()}
+                if self.final_norm_output is not None
+                else {}
+            ),
         }
 
     def execute(self) -> None:
@@ -304,7 +427,16 @@ class _DecodeBucket:
         hidden_states = self.model.model.embedding(self.input_ids)
         for layer_index, layer in enumerate(self.model.model.layers):
             attention = layer.attention
-            normalized = layer.input_norm(hidden_states)
+            normalized = (
+                _rms_norm_eager(
+                    hidden_states,
+                    layer.input_norm.weight,
+                    layer.input_norm.eps,
+                    self.input_norm_outputs[layer_index],
+                )
+                if self.fusion_level.uses_triton_norm
+                else layer.input_norm(hidden_states)
+            )
             query = attention._shape(attention.q_proj(normalized), attention.num_heads)
             key = attention._shape(
                 attention.k_proj(normalized), attention.num_key_value_heads
@@ -339,11 +471,58 @@ class _DecodeBucket:
                     self.batch_capacity, 1, self.model.config.hidden_size
                 )
             )
-            hidden_states = hidden_states + attention_output
-            hidden_states = hidden_states + layer.mlp(
-                layer.post_attention_norm(hidden_states)
+            if self.fusion_level.uses_fused_residual_norm:
+                residual_output, mlp_input = _residual_rms_norm_eager(
+                    attention_output,
+                    hidden_states,
+                    layer.post_attention_norm.weight,
+                    layer.post_attention_norm.eps,
+                    self.residual_outputs[layer_index],
+                    self.post_norm_outputs[layer_index],
+                )
+            elif self.fusion_level.uses_triton_norm:
+                residual_output = torch.add(
+                    hidden_states,
+                    attention_output,
+                    out=self.residual_outputs[layer_index],
+                )
+                mlp_input = _rms_norm_eager(
+                    residual_output,
+                    layer.post_attention_norm.weight,
+                    layer.post_attention_norm.eps,
+                    self.post_norm_outputs[layer_index],
+                )
+            else:
+                residual_output = hidden_states + attention_output
+                mlp_input = layer.post_attention_norm(residual_output)
+            if self.fusion_level.uses_triton_swiglu:
+                gate = layer.mlp.gate_proj(mlp_input)
+                up = layer.mlp.up_proj(mlp_input)
+                activation = _swiglu_eager(
+                    gate, up, self.swiglu_outputs[layer_index]
+                )
+                mlp_output = layer.mlp.down_proj(activation)
+            else:
+                mlp_output = layer.mlp(mlp_input)
+            hidden_states = (
+                torch.add(
+                    residual_output,
+                    mlp_output,
+                    out=self.hidden_outputs[layer_index],
+                )
+                if self.fusion_level.uses_triton_norm
+                else residual_output + mlp_output
             )
-        hidden_states = self.model.model.final_norm(hidden_states)
+        hidden_states = (
+            _rms_norm_eager(
+                hidden_states,
+                self.model.model.final_norm.weight,
+                self.model.model.final_norm.eps,
+                cast(Tensor, self.final_norm_output),
+            )
+            if self.fusion_level.uses_triton_norm
+            else self.model.model.final_norm(hidden_states)
+        )
         output = cast(Tensor, self.model.output_projection(hidden_states)[:, 0])
         self.logits.copy_(output)
 
@@ -357,6 +536,7 @@ class BucketedPagedDecodeExecutor:
     mode: DecodeExecutionMode
     batch_buckets: tuple[int, ...]
     context_buckets: tuple[int, ...]
+    fusion_level: DecodeFusionLevel = DecodeFusionLevel.NONE
 
     def __post_init__(self) -> None:
         self._fallback = BatchedPagedDecodeExecutor(self.model, self.cache)
@@ -452,6 +632,7 @@ class BucketedPagedDecodeExecutor:
                 batch_capacity=batch_capacity,
                 context_capacity=context_capacity,
                 mode=self.mode,
+                fusion_level=self.fusion_level,
                 metrics=self._metrics,
             )
             self._buckets[bucket_key] = bucket

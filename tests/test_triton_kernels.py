@@ -148,3 +148,66 @@ def test_inference_only_contract_rejects_gradients() -> None:
     up = torch.randn_like(gate)
     with pytest.raises(RuntimeError, match="inference-only"):
         swiglu(gate, up)
+
+
+def test_caller_owned_outputs_are_reused_and_numerically_correct() -> None:
+    _require_triton_cuda()
+    from tensorforge.kernels.triton_ops import residual_rms_norm, rms_norm, swiglu
+
+    inputs = torch.randn(3, 64, device="cuda", dtype=torch.float16)
+    residual = torch.randn_like(inputs)
+    weight = torch.randn(64, device="cuda", dtype=torch.float16)
+    gate = torch.randn(3, 160, device="cuda", dtype=torch.float16)
+    up = torch.randn_like(gate)
+    norm_output = torch.empty_like(inputs)
+    residual_output = torch.empty_like(inputs)
+    post_norm_output = torch.empty_like(inputs)
+    swiglu_output = torch.empty_like(gate)
+    addresses = tuple(
+        tensor.data_ptr()
+        for tensor in (
+            norm_output,
+            residual_output,
+            post_norm_output,
+            swiglu_output,
+        )
+    )
+
+    assert rms_norm(inputs, weight, output=norm_output) is norm_output
+    actual_residual, actual_post_norm = residual_rms_norm(
+        inputs,
+        residual,
+        weight,
+        residual_output=residual_output,
+        norm_output=post_norm_output,
+    )
+    assert actual_residual is residual_output
+    assert actual_post_norm is post_norm_output
+    assert swiglu(gate, up, output=swiglu_output) is swiglu_output
+    assert addresses == tuple(
+        tensor.data_ptr()
+        for tensor in (
+            norm_output,
+            residual_output,
+            post_norm_output,
+            swiglu_output,
+        )
+    )
+    expected_residual, expected_post_norm = residual_rms_norm_reference(
+        inputs, residual, weight, 1e-6
+    )
+    torch.testing.assert_close(
+        norm_output,
+        rms_norm_reference(inputs, weight, 1e-6),
+        rtol=3e-3,
+        atol=3e-3,
+    )
+    torch.testing.assert_close(
+        residual_output, expected_residual, rtol=3e-3, atol=3e-3
+    )
+    torch.testing.assert_close(
+        post_norm_output, expected_post_norm, rtol=3e-3, atol=3e-3
+    )
+    torch.testing.assert_close(
+        swiglu_output, swiglu_reference(gate, up), rtol=3e-3, atol=3e-3
+    )

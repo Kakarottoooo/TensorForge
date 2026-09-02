@@ -13,6 +13,11 @@ through two persistent pinned slabs. Tensor addresses therefore remain stable ac
 refill and physical-page reuse; the values and logical-to-physical mapping may change on every
 replay.
 
+Fusion levels extend the same bucket with caller-owned input-norm, residual, post-attention norm,
+hidden-state, SwiGLU activation, and final-norm outputs. `rms_norm` replaces every norm while keeping
+the residual add separate; `residual_rms_norm` additionally fuses the attention residual and MLP
+input norm; `all` also replaces the SwiGLU activation. Linear projections remain PyTorch/cuBLAS.
+
 Inactive lanes have context length one for a legal attention launch but an `active_mask` of zero.
 The masked Triton KV writer performs no store for those lanes. Only active logit views are returned.
 Returned views are ephemeral and are overwritten by the next execution; callers retaining logits
@@ -26,6 +31,9 @@ must clone them.
   Triton KV-write and paged-attention launches remain explicit graph boundaries.
 - `cuda_graph` performs one side-stream warmup and one explicit `torch.cuda.CUDAGraph` capture per
   bucket. The first call is a miss/capture; later calls replay and count as hits.
+
+Compile and CUDA Graph are alternative children of fully fused eager execution. They are not
+stacked or compared as if one causally contains the other.
 
 Cache reservation/commit/rollback, pinned-host staging, request selection, and bucket lookup remain
 outside capture. Captured work begins after the asynchronous staging copies and includes model

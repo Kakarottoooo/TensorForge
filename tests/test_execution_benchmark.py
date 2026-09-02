@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from tensorforge.benchmark.execution_benchmark import load_execution_manifest
+from tensorforge.runtime.decode_bucket import DecodeExecutionMode, DecodeFusionLevel
 
 
 def test_phase6_manifest_covers_graph_hits_and_shape_fallback() -> None:
@@ -51,3 +52,31 @@ def test_execution_manifest_rejects_unknown_case_fields(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="unknown execution case keys"):
         load_execution_manifest(path)
+
+
+def test_phase7a_manifest_defines_ordered_cumulative_variants_and_long_contexts() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    manifest = load_execution_manifest(
+        repository / "benchmarks" / "phase7a-cumulative.json"
+    )
+
+    assert [variant.name for variant in manifest.variants] == [
+        "paged_dynamic_eager",
+        "stable_bucket_eager",
+        "triton_rms_norm",
+        "triton_residual_rms_norm",
+        "triton_all_fusions",
+        "triton_all_compile",
+        "triton_all_cuda_graph",
+    ]
+    assert manifest.variants[-1].mode is DecodeExecutionMode.CUDA_GRAPH
+    assert manifest.variants[-1].fusion_level is DecodeFusionLevel.ALL
+    assert manifest.variants[-1].parent == "triton_all_fusions"
+    assert manifest.variants[0].stable_bucket is False
+    assert {case.context_buckets[-1] for case in manifest.cases} == {
+        32,
+        128,
+        512,
+        2048,
+    }
+    assert all(case.setup_method == "reference_prefill" for case in manifest.cases)

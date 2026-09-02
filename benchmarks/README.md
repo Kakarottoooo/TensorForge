@@ -27,3 +27,9 @@ no/static/continuous refill policy changes.
 `phase6-execution.json` fixes batch/context buckets, eligible shapes, one deliberate batch-overflow
 shape, setup length, decode steps, and repetition count. Eager, segmented `torch.compile`, and
 explicit CUDA Graph rows share model weights, cache ownership, custom kernels, and bucket buffers.
+
+`phase7a-cumulative.json` defines one causal parent for every ablation row: dynamic paged eager,
+stable eager buckets, Triton RMSNorm, fused residual/RMSNorm, Triton SwiGLU activation, segmented
+compile, and explicit CUDA Graph. It covers B1/B4/B8 at context 32 plus B1 contexts 128/512/2,048.
+Long-prefix cache priming is excluded setup through the readable full-prefix path and is not a
+production prefill-kernel claim.
