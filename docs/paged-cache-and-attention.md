@@ -103,9 +103,10 @@ including RoPE positions and the current token's cache visibility.
 
 The Phase 4 microbenchmark compares preallocated Triton execution with the Phase 1-equivalent
 PyTorch path over contiguous logical K/V. PyTorch head expansion, score matmul, FP32 softmax, and
-value aggregation are inside its timed region. This is a semantic baseline, not a claim of parity
-with PyTorch SDPA, FlashAttention, vLLM, or another paged kernel. Logical bytes are a work model, not
-Nsight Compute DRAM transactions.
+value aggregation are inside its timed region. Long-context cases also force the one-pass kernel as
+an ablation, isolating the contribution of split-KV dispatch. This is a semantic baseline, not a
+claim of parity with PyTorch SDPA, FlashAttention, vLLM, or another paged kernel. Logical bytes are
+a work model, not Nsight Compute DRAM transactions.
 
 ## Explicit limitations
 

@@ -163,7 +163,7 @@ def _logical_work(case: AttentionCase, element_size: int) -> tuple[int, int]:
 
 def _case_functions(
     case: AttentionCase, device: torch.device
-) -> tuple[Callable[[], Tensor], Callable[[], Tensor], Tensor]:
+) -> tuple[Callable[[], Tensor], Callable[[], Tensor], Callable[[], Tensor], Tensor]:
     dtype = _dtype(case.precision)
     generator = torch.Generator(device=device).manual_seed(case.seed)
     logical_blocks = (case.context_length + case.block_size - 1) // case.block_size
@@ -224,7 +224,20 @@ def _case_functions(
             workspace=workspace,
         )
 
-    return torch_run, triton_run, expected
+    def triton_one_pass_run() -> Tensor:
+        return paged_gqa_decode_attention(
+            query,
+            key_cache,
+            value_cache,
+            block_tables,
+            context_lengths,
+            max_context_length=case.context_length,
+            output=output,
+            workspace=workspace,
+            attention_path="one_pass",
+        )
+
+    return torch_run, triton_run, triton_one_pass_run, expected
 
 
 def run_attention_case(
@@ -235,7 +248,9 @@ def run_attention_case(
     warmup_ms: int,
     repetition_ms: int,
 ) -> AttentionCaseResult:
-    torch_function, triton_function, expected = _case_functions(case, device)
+    torch_function, triton_function, triton_one_pass_function, expected = _case_functions(
+        case, device
+    )
     torch.cuda.synchronize(device)
     first_call_start = time.perf_counter_ns()
     actual = triton_function()
@@ -253,9 +268,9 @@ def run_attention_case(
         rtol=tolerance,
         atol=tolerance,
     )
+    selected_config = selected_attention_autotune_config()
 
     torch_p05, torch_p50, torch_p95 = _bench(torch_function, warmup_ms, repetition_ms)
-    triton_p05, triton_p50, triton_p95 = _bench(triton_function, warmup_ms, repetition_ms)
     logical_bytes, modeled_flops = _logical_work(case, actual.element_size())
     intensity = modeled_flops / logical_bytes
 
@@ -282,21 +297,41 @@ def run_attention_case(
             empirical_copy_bandwidth_pct=100 * bandwidth / copy_bandwidth_gbps,
         )
 
+    timing_results = [
+        timing("torch_expanded_gqa", torch_p05, torch_p50, torch_p95, 1.0)
+    ]
+    if selected_config is not None and selected_config.get("path") == "split_kv":
+        one_pass_p05, one_pass_p50, one_pass_p95 = _bench(
+            triton_one_pass_function, warmup_ms, repetition_ms
+        )
+        timing_results.append(
+            timing(
+                "triton_one_pass_ablation",
+                one_pass_p05,
+                one_pass_p50,
+                one_pass_p95,
+                torch_p50 / one_pass_p50,
+            )
+        )
+    triton_p05, triton_p50, triton_p95 = _bench(
+        triton_function, warmup_ms, repetition_ms
+    )
+    timing_results.append(
+        timing(
+            "triton_auto_preallocated",
+            triton_p05,
+            triton_p50,
+            triton_p95,
+            torch_p50 / triton_p50,
+        )
+    )
+
     return AttentionCaseResult(
         case=case,
         correctness=correctness,
         first_call_wall_ms=first_call_wall_ms,
-        selected_autotune_config=selected_attention_autotune_config(),
-        timings=(
-            timing("torch_expanded_gqa", torch_p05, torch_p50, torch_p95, 1.0),
-            timing(
-                "triton_paged_gqa_preallocated",
-                triton_p05,
-                triton_p50,
-                triton_p95,
-                torch_p50 / triton_p50,
-            ),
-        ),
+        selected_autotune_config=selected_config,
+        timings=tuple(timing_results),
     )
 
 
@@ -426,8 +461,15 @@ def write_attention_reports(
 
     hardware = result["hardware"]
     gpu = hardware["gpus"][0]
-    regressions = sum(
-        timing_result["performance_outcome"] == "regression"
+    selected_regressions = sum(
+        timing_result["implementation"] == "triton_auto_preallocated"
+        and timing_result["performance_outcome"] == "regression"
+        for case_result in result["cases"]
+        for timing_result in case_result["timings"]
+    )
+    ablation_regressions = sum(
+        timing_result["implementation"] == "triton_one_pass_ablation"
+        and timing_result["performance_outcome"] == "regression"
         for case_result in result["cases"]
         for timing_result in case_result["timings"]
     )
@@ -441,7 +483,9 @@ def write_attention_reports(
         f"- Git: `{hardware['git_commit']}`; dirty: `{hardware['git_dirty']}`",
         f"- Empirical copy ceiling: "
         f"{result['empirical_copy_ceiling']['effective_bandwidth_gbps']:.2f} GB/s",
-        f"- Triton regressions versus PyTorch expanded GQA: **{regressions}**",
+        f"- Selected auto-path regressions versus PyTorch expanded GQA: "
+        f"**{selected_regressions}**",
+        f"- Forced one-pass ablation regressions: **{ablation_regressions}**",
         "",
         "Steady-state timings exclude first-call JIT/autotune. The PyTorch baseline performs "
         "GQA head expansion inside the timed region; Triton output and split workspace are "

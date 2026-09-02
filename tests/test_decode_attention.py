@@ -138,13 +138,24 @@ def test_long_context_with_few_heads_selects_split_kv_path() -> None:
         output=output,
         workspace=workspace,
     )
+    selected_config = selected_attention_autotune_config()
     expected = paged_gqa_decode_reference(
         query, key_cache, value_cache, block_tables, context_lengths
+    )
+    one_pass = paged_gqa_decode_attention(
+        query,
+        key_cache,
+        value_cache,
+        block_tables,
+        context_lengths,
+        max_context_length=2048,
+        attention_path="one_pass",
     )
 
     assert actual.data_ptr() == output.data_ptr()
     torch.testing.assert_close(actual, expected, rtol=3e-3, atol=3e-3)
-    assert selected_attention_autotune_config() == {
+    torch.testing.assert_close(one_pass, expected, rtol=3e-3, atol=3e-3)
+    assert selected_config == {
         "path": "split_kv",
         "split_size": 256,
         "num_splits": 8,

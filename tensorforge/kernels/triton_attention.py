@@ -334,6 +334,7 @@ def paged_gqa_decode_attention(
     max_context_length: int | None = None,
     output: Tensor | None = None,
     workspace: PagedAttentionWorkspace | None = None,
+    attention_path: str = "auto",
 ) -> Tensor:
     """Attend one query token per sequence over logically ordered physical KV pages."""
 
@@ -366,6 +367,8 @@ def paged_gqa_decode_attention(
         raise ValueError("context_lengths must have one value per query")
     if query.requires_grad and torch.is_grad_enabled():
         raise RuntimeError("TensorForge Triton kernels are inference-only")
+    if attention_path not in {"auto", "one_pass", "split_kv"}:
+        raise ValueError("attention_path must be auto, one_pass, or split_kv")
 
     context_capacity = block_tables.shape[1] * block_size
     if max_context_length is None:
@@ -394,7 +397,11 @@ def paged_gqa_decode_attention(
         raise ValueError("output must be contiguous and share query shape, dtype, and device")
     attention_scale = head_dim**-0.5 if scale is None else scale
     global _LAST_ATTENTION_CONFIG
-    use_split_kv = max_context_bucket >= 1024 and batch * query_heads <= 32
+    use_split_kv = attention_path == "split_kv" or (
+        attention_path == "auto"
+        and max_context_bucket >= 1024
+        and batch * query_heads <= 32
+    )
     if use_split_kv:
         split_size = 256
         num_splits = triton.cdiv(max_context_bucket, split_size)
