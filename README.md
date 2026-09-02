@@ -11,7 +11,8 @@ including segmented `torch.compile` and explicit CUDA Graph modes. The cumulativ
 the causal parent of every row so stable buffers, each fusion, compile, and graph remain separately
 attributable over the one canonical transactional paged cache.
 
-Current measured artifacts: [Phase 6 RTX 3080 Ti execution report](results/reference/phase6-rtx3080ti-wsl/execution.md),
+Current measured artifacts: [Phase 7A RTX 3080 Ti cumulative decode report](results/reference/phase7a-rtx3080ti-wsl/execution.md),
+[Phase 6 RTX 3080 Ti execution report](results/reference/phase6-rtx3080ti-wsl/execution.md),
 [Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
 [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
 [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
@@ -53,6 +54,8 @@ Current measured artifacts: [Phase 6 RTX 3080 Ti execution report](results/refer
   [`docs/phase-6-validation.md`](docs/phase-6-validation.md).
 - Unified decode dataflow and cumulative-ablation rules in
   [`docs/cumulative-decode-path.md`](docs/cumulative-decode-path.md).
+- Measured Phase 7A cumulative attribution, retained regressions, and claim boundary in
+  [`docs/phase-7a-validation.md`](docs/phase-7a-validation.md).
 
 ## Baseline architecture
 

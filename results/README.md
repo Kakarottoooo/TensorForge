@@ -13,6 +13,9 @@ and explicit improvement/regression labels.
 
 Curated reports:
 
+- `reference/phase7a-rtx3080ti-wsl/execution.{json,csv,md}`: cumulative dynamic paged eager,
+  address-stable bucket, Triton RMSNorm, fused residual/RMSNorm, Triton SwiGLU, segmented compile,
+  and explicit CUDA Graph ablation on clean commit `b268f16`.
 - `reference/phase6-rtx3080ti-wsl/execution.{json,csv,md}`: address-stable eager,
   segmented `torch.compile`, explicit CUDA Graph, and forced shape-fallback ablation with cold setup
   cost and steady-state P50/P95/P99 on clean commit `9160667`.
