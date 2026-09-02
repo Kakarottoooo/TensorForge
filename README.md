@@ -5,11 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 3 Triton kernels implemented.** In addition to the Phase 2 measurement
-control plane, TensorForge contains autotuned RMSNorm, fused residual/RMSNorm, and SwiGLU activation
-kernels plus an integrated Llama execution path, GPU correctness grid, kernel microbenchmarks, and
-explicit arithmetic-intensity/empirical-roofline accounting. Results remain scoped to their exact
-model, commit, workload, and environment.
+**Current status: Phase 4 paged decode implemented.** TensorForge now contains a transactional
+logical-to-physical KV-page allocator, one-pass and split-KV Triton GQA decode-attention kernels,
+stable-buffer interfaces for later CUDA Graph capture, and an incremental Llama executor checked
+token-by-token against the full-prefix oracle. Results remain scoped to their exact model, commit,
+workload, and environment.
 
 Current measured artifacts: [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
 [Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
@@ -36,6 +36,8 @@ Current measured artifacts: [Phase 3 RTX 3080 Ti kernel report](results/referenc
   [`docs/kernel-design.md`](docs/kernel-design.md).
 - Measured Phase 3 evidence, cold-start cost, regressions policy, and claim boundary in
   [`docs/phase-3-validation.md`](docs/phase-3-validation.md).
+- Paged ownership, append/rollback, online-softmax, split-KV, and stable-buffer contracts in
+  [`docs/paged-cache-and-attention.md`](docs/paged-cache-and-attention.md).
 
 ## Baseline architecture
 
@@ -107,6 +109,10 @@ pytest -q
 python -m scripts.benchmark_kernels \
   --manifest benchmarks/phase3-kernels.json \
   --output-dir results/local/phase3-kernels
+
+python -m scripts.benchmark_attention \
+  --manifest benchmarks/phase4-attention.json \
+  --output-dir results/local/phase4-attention
 ```
 
 ## Correctness policy
@@ -136,8 +142,8 @@ immutable manifests. TensorForge does not publish invented example measurements.
 - **Small default model:** dimensions fit commodity GPUs and make experiments accessible; this is
   infrastructure validation, not a language-quality claim.
 - **No heavyweight inference engine:** optimized behavior remains attributable to this repository.
-- **No premature cache interface:** Phase 4 will introduce cache contracts after Phase 2 establishes
-  allocation and decode bottlenecks, avoiding an API shaped by guesses.
+- **Transactional cache ownership:** scheduler policy remains outside the cache; failed, cancelled,
+  and partially accepted appends have explicit page-reclamation semantics.
 - **Single-GPU first:** multi-GPU work remains optional until the one-GPU path is correct and measured.
 
 ## Repository map

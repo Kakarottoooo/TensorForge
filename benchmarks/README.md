@@ -14,3 +14,7 @@ explicit adjustment/failure record.
 microbenchmark matrix. It includes odd widths, decode and prefill row counts, default-model and
 7B-style widths, FP16/BF16/FP32, timing duration, copy-ceiling size, and the sourced FP32 compute
 ceiling derivation.
+
+`phase4-attention.json` fixes the paged GQA decode matrix before measurement. It covers context 1,
+17, 128, 512, and 2,048; batch 1 and 8; default and 7B-style head layouts; FP16/BF16/FP32; and
+retains every measured improvement or regression.

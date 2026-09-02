@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "warmup_ms": 25,
+  "repetition_ms": 100,
+  "copy_buffer_mib": 256,
+  "cases": [
+    {"name": "default-c1-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 1, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c17-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 17, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c128-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 128, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c512-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 512, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c2048-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 2048, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c128-b8", "batch": 8, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 128, "block_size": 16, "precision": "fp16"},
+    {"name": "default-c512-b8", "batch": 8, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 512, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c1-b1", "batch": 1, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 1, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c128-b1", "batch": 1, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 128, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c512-b1", "batch": 1, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 512, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c2048-b1", "batch": 1, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 2048, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c512-b8", "batch": 8, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 512, "block_size": 16, "precision": "fp16"},
+    {"name": "7b-c512-b1-bf16", "batch": 1, "query_heads": 32, "kv_heads": 8, "head_dim": 128, "context_length": 512, "block_size": 16, "precision": "bf16"},
+    {"name": "default-c128-b1-fp32", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 128, "block_size": 16, "precision": "fp32"}
+  ]
+}
