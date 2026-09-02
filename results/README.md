@@ -13,6 +13,9 @@ and explicit improvement/regression labels.
 
 Curated reports:
 
+- `reference/phase5-rtx3080ti-wsl/scheduler.{json,csv,md}`: no/static/continuous request-policy
+  ablation with full traces, seeded churn, terminal counts, and P50/P95/P99 on clean commit
+  `f3e5b4c`.
 - `reference/phase4-rtx3080ti-wsl/attention.{json,csv,md}`: paged GQA decode matrix plus forced
   one-pass versus auto split-KV long-context ablation on clean commit `42e4782`.
 - `reference/phase3-rtx3080ti-wsl/kernels.{json,csv,md}`: 22 correctness-gated Phase 3 kernel cases

@@ -11,7 +11,8 @@ decode over the transactional paged cache, per-request failure and cancellation 
 seeded churn stress. The GPU path remains checked token-by-token against independent full-prefix
 execution. Results remain scoped to their exact model, commit, workload, and environment.
 
-Current measured artifacts: [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
+Current measured artifacts: [Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
+[Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
 [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
 [Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
 [512-token baseline profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
@@ -43,6 +44,8 @@ Current measured artifacts: [Phase 4 RTX 3080 Ti paged-attention report](results
   [`docs/phase-4-validation.md`](docs/phase-4-validation.md).
 - Lifecycle ownership, budgeting, policy semantics, and benchmark boundaries in
   [`docs/continuous-batching.md`](docs/continuous-batching.md).
+- Measured Phase 5 policy ablation, variance, regressions, and claim boundary in
+  [`docs/phase-5-validation.md`](docs/phase-5-validation.md).
 
 ## Baseline architecture
 
