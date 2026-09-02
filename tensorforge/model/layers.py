@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
@@ -119,7 +121,7 @@ class CausalSelfAttention(nn.Module):
         probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
         context = torch.matmul(probabilities, value)
         context = context.transpose(1, 2).contiguous().view(batch, sequence, -1)
-        return self.o_proj(context)
+        return cast(Tensor, self.o_proj(context))
 
 
 class SwiGLU(nn.Module):
@@ -132,7 +134,10 @@ class SwiGLU(nn.Module):
         self.down_proj = nn.Linear(config.intermediate_size, config.hidden_size, bias=False)
 
     def forward(self, hidden_states: Tensor) -> Tensor:
-        return self.down_proj(F.silu(self.gate_proj(hidden_states)) * self.up_proj(hidden_states))
+        return cast(
+            Tensor,
+            self.down_proj(F.silu(self.gate_proj(hidden_states)) * self.up_proj(hidden_states)),
+        )
 
 
 class TransformerBlock(nn.Module):
@@ -149,7 +154,7 @@ class TransformerBlock(nn.Module):
         hidden_states = hidden_states + self.attention(
             self.input_norm(hidden_states), attention_mask=attention_mask
         )
-        return hidden_states + self.mlp(self.post_attention_norm(hidden_states))
+        return cast(Tensor, hidden_states + self.mlp(self.post_attention_norm(hidden_states)))
 
 
 def initialize_weights(module: nn.Module) -> None:

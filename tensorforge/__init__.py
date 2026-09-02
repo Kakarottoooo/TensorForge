@@ -5,4 +5,4 @@ from tensorforge.model.llama import LlamaForCausalLM
 
 __all__ = ["LlamaForCausalLM", "ModelConfig"]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

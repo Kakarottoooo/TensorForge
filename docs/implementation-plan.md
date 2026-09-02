@@ -33,13 +33,14 @@ profiling, and metrics consume public boundaries so instrumentation does not con
 | Phase | Concrete deliverable | Acceptance gate |
 |---|---|---|
 | 1 — baseline | Explicit grouped-query Llama model, RoPE, RMSNorm, SwiGLU, greedy decode, FP32/FP16/BF16 selection | CPU unit suite; CUDA smoke for supported dtypes; causal and decode equivalence tests |
-| 2 — measure | Workload schema, hardware capture, CUDA-event latency measurement, torch.profiler traces, JSON/CSV/Markdown reports | Repeated warmup/measured runs; percentile tests; real hardware metadata in every row |
-| 3 — kernels | Triton RMSNorm, residual+RMSNorm, and fused SwiGLU elementwise path | Shape/dtype correctness grid and per-shape benchmark versus PyTorch |
-| 4 — cache | Naive cache oracle plus preallocated paged cache with ownership and accounting | Lifecycle, exhaustion, reuse, fragmentation, and decode-equivalence stress tests |
-| 5 — batching | Request state machine with no/static/continuous policies | Seeded arrival workload; latency percentiles and throughput comparison |
-| 6 — execution | Separate ablations for compile, graph capture, reusable buffers, and transfer strategy | Eligibility/fallback tests plus measured ablation table |
-| 7 — multi-GPU | Optional replicated workers first; tensor parallelism only if model scale justifies it | Single-versus-multi GPU throughput and scaling efficiency; NCCL overhead |
-| 8 — release | Re-run benchmark matrix, hotspot analysis, failure notes, final report, resume claims | Clean checkout reproduction and all claims traceable to raw result IDs |
+| 2 — measurement control plane | Versioned workloads, request timelines, hardware fingerprinting, CUDA/host timing, profiler summaries, JSON/CSV/Markdown | Repeated warmup/measured runs; percentile tests; real metadata and claim boundaries in every suite |
+| 3 — fused scalar kernels | Autotuned Triton RMSNorm, residual+RMSNorm, and SwiGLU activation path | FP16/BF16/FP32 shape grid, adversarial numerics, per-shape PyTorch ablation, Nsight/roofline evidence |
+| 4 — decode attention and cache | GQA decode-attention Triton kernel plus logical-to-physical paged KV cache | Attention/cache oracle equivalence, ownership/reuse/exhaustion tests, allocator accounting and churn stress |
+| 5 — continuous batching | Explicit queued/prefill/decode/completed/failed lifecycle, token budgets, reclamation | Seeded arrivals and cancellations; no/static/continuous P50/P95/P99 and throughput comparison |
+| 6 — execution specialization | Separate eager, torch.compile and bucketed CUDA Graph decode executors | Capture eligibility/fallback tests; setup versus steady state; buffer-address stability and ablation rows |
+| 7 — speculative decoding | Draft/target proposal, verification, rejection rollback, and paged-cache commit protocol | Distribution/correctness equivalence, accept-length metrics, cache rollback stress, net speedup or regression |
+| 8 — scale and external reference | Optional NCCL multi-GPU execution and semantically matched vLLM reference | World-size identity, scaling efficiency/communication cost; fair-comparison checklist or explicit non-comparable result |
+| 9 — release study | Full workload matrix, randomized repeated ablations, hotspot/roofline analysis, failures, final report | Clean-checkout reproduction; all performance and resume claims traceable to raw result IDs |
 
 ## Benchmark experiment design
 
@@ -68,4 +69,3 @@ back to eager execution for ineligible requests; they are not assumed to help pr
 - Randomly initialized weights validate runtime mathematics, not language quality. A compatible
   checkpoint adapter is future work and must not blur the baseline/optimized comparison.
 - FP16/BF16 tolerances will be derived per operator; exact token equality alone can hide logit drift.
-

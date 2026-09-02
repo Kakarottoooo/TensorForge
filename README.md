@@ -5,10 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 1 complete.** The repository contains a readable inference baseline and its
-correctness contracts. It contains **no performance claims yet**: measurement and profiling begin in
-Phase 2, and raw results will be checked in only after running the reproducible harness on named
-hardware.
+**Current status: Phase 2 measurement infrastructure implemented.** The repository contains a
+readable inference baseline, correctness contracts, versioned request-level benchmark records,
+hardware fingerprinting, explicit host/CUDA timing, profiler analysis, and JSON/CSV/Markdown report
+generation. Curated measurements are checked in only after running on named hardware; results remain
+scoped to their exact model, commit, workload, and environment.
 
 ## What is implemented
 
@@ -23,6 +24,8 @@ hardware.
   [`docs/implementation-plan.md`](docs/implementation-plan.md).
 - Reproducibility evidence and an explicit claim boundary in
   [`docs/phase-1-validation.md`](docs/phase-1-validation.md).
+- A rigorous timing, synchronization, capacity, profiler, fair-comparison, and ablation contract in
+  [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md).
 
 ## Baseline architecture
 
@@ -64,6 +67,27 @@ python -m scripts.smoke_generate --device cuda --dtype fp16
 On Windows, activate with `.venv\\Scripts\\Activate.ps1`. Official Triton work is planned for a
 Linux CUDA environment in Phase 3; `pip install -e ".[dev,kernels]"` installs it where supported.
 
+Run the fast measurement-path check, the curated reference manifest, and a profiler capture with:
+
+```bash
+python -m scripts.run_benchmarks \
+  --manifest benchmarks/phase2-smoke.json \
+  --output-dir results/local/phase2-smoke \
+  --device cuda:0
+
+python -m scripts.run_benchmarks \
+  --manifest benchmarks/phase2-reference.json \
+  --output-dir results/local/phase2-reference \
+  --device cuda:0
+
+python -m scripts.profile_model \
+  --output-dir results/local/profile \
+  --prompt-length 512 --decode-steps 4 --precision fp16
+```
+
+Use `python -m scripts.nsys_profile --output results/local/nsys/baseline` when Nsight Systems is on
+`PATH`. See the [benchmark methodology](docs/benchmark-methodology.md) before comparing rows.
+
 ## Correctness policy
 
 The PyTorch model is the semantic reference. Low-precision operators accumulate sensitive
@@ -74,14 +98,16 @@ explicitly scoped; throughput never overrides correctness.
 
 ## Roadmap and benchmark methodology
 
-The [implementation plan](docs/implementation-plan.md) specifies eight gated phases, experiment
+The [implementation plan](docs/implementation-plan.md) specifies nine gated phases, experiment
 records, the required workload matrix, OOM accounting, and one-factor-at-a-time ablations. Phase 2
-will record TTFT, TPOT, tokens/s, per-request P50/P95/P99, allocated/peak memory, utilization when
-available, and complete hardware/software metadata in JSON, CSV, and Markdown.
+records TTFT, TPOT, tokens/s, per-request P50/P95/P99, allocated/peak memory, utilization when
+available, and complete hardware/software metadata in JSON, CSV, and Markdown. The same schema names
+eager/compile/CUDA Graph modes, kernel implementations, cache and scheduler policies,
+standard/speculative decode, and tensor-parallel world size so later ablations remain comparable.
 
-Later reports will explicitly cover optimizations that lose on small or awkward shapes. Empty
-[`results/`](results/README.md) and [`benchmarks/`](benchmarks/README.md) directories are intentional:
-TensorForge does not publish invented example measurements.
+Later reports will explicitly cover optimizations that lose on small or awkward shapes. See
+[`results/`](results/README.md) and [`benchmarks/`](benchmarks/README.md) for curated measurements and
+immutable manifests. TensorForge does not publish invented example measurements.
 
 ## Design tradeoffs
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import torch
 from torch import Tensor, nn
 
@@ -36,7 +38,7 @@ class LlamaModel(nn.Module):
         hidden_states = self.embedding(input_ids)
         for layer in self.layers:
             hidden_states = layer(hidden_states, attention_mask=attention_mask)
-        return self.final_norm(hidden_states)
+        return cast(Tensor, self.final_norm(hidden_states))
 
 
 class LlamaForCausalLM(nn.Module):
@@ -53,4 +55,4 @@ class LlamaForCausalLM(nn.Module):
 
     def forward(self, input_ids: Tensor, attention_mask: Tensor | None = None) -> Tensor:
         hidden_states = self.model(input_ids, attention_mask=attention_mask)
-        return self.output_projection(hidden_states)
+        return cast(Tensor, self.output_projection(hidden_states))

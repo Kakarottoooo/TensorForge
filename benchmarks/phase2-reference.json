@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "name": "reference-p128-g32-b1-fp16",
+      "model": {},
+      "prompt_length": 128,
+      "generation_length": 32,
+      "batch_size": 1,
+      "concurrency": 1,
+      "precision": "fp16",
+      "warmup_repetitions": 3,
+      "measured_repetitions": 10,
+      "gpu_util_sample_ms": 100
+    },
+    {
+      "name": "reference-p512-g32-b4-fp16",
+      "model": {},
+      "prompt_length": 512,
+      "generation_length": 32,
+      "batch_size": 4,
+      "concurrency": 4,
+      "precision": "fp16",
+      "warmup_repetitions": 3,
+      "measured_repetitions": 10,
+      "gpu_util_sample_ms": 100
+    },
+    {
+      "name": "reference-p2048-g32-b1-fp16",
+      "model": {},
+      "prompt_length": 2048,
+      "generation_length": 32,
+      "batch_size": 1,
+      "concurrency": 1,
+      "precision": "fp16",
+      "warmup_repetitions": 2,
+      "measured_repetitions": 5,
+      "gpu_util_sample_ms": 100
+    }
+  ]
+}

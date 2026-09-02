@@ -9,7 +9,7 @@ from dataclasses import dataclass
 class ModelConfig:
     """Static model dimensions.
 
-    Defaults deliberately describe a small model (~30M parameters) that fits on
+    Defaults deliberately describe a small model (~56M parameters) that fits on
     commodity GPUs. Tests use smaller configurations to keep CPU CI fast.
     """
 
@@ -19,7 +19,7 @@ class ModelConfig:
     num_hidden_layers: int = 8
     num_attention_heads: int = 8
     num_key_value_heads: int = 4
-    max_position_embeddings: int = 2_048
+    max_position_embeddings: int = 4_096
     rms_norm_eps: float = 1e-6
     rope_theta: float = 10_000.0
     tie_word_embeddings: bool = False
