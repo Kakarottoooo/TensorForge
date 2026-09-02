@@ -5,11 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 4 paged decode implemented.** TensorForge now contains a transactional
-logical-to-physical KV-page allocator, one-pass and split-KV Triton GQA decode-attention kernels,
-stable-buffer interfaces for later CUDA Graph capture, and an incremental Llama executor checked
-token-by-token against the full-prefix oracle. Results remain scoped to their exact model, commit,
-workload, and environment.
+**Current status: Phase 5 continuous batching implemented.** TensorForge now contains a
+token-budgeted request lifecycle, no/static/continuous batching policies, heterogeneous batched
+decode over the transactional paged cache, per-request failure and cancellation reclamation, and
+seeded churn stress. The GPU path remains checked token-by-token against independent full-prefix
+execution. Results remain scoped to their exact model, commit, workload, and environment.
 
 Current measured artifacts: [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
 [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
@@ -41,6 +41,8 @@ Current measured artifacts: [Phase 4 RTX 3080 Ti paged-attention report](results
   [`docs/paged-cache-and-attention.md`](docs/paged-cache-and-attention.md).
 - Measured Phase 4 evidence, split-KV ablation, failures, and claim boundary in
   [`docs/phase-4-validation.md`](docs/phase-4-validation.md).
+- Lifecycle ownership, budgeting, policy semantics, and benchmark boundaries in
+  [`docs/continuous-batching.md`](docs/continuous-batching.md).
 
 ## Baseline architecture
 
@@ -116,6 +118,10 @@ python -m scripts.benchmark_kernels \
 python -m scripts.benchmark_attention \
   --manifest benchmarks/phase4-attention.json \
   --output-dir results/local/phase4-attention
+
+python -m scripts.benchmark_scheduler \
+  --manifest benchmarks/phase5-scheduler.json \
+  --output-dir results/local/phase5-scheduler
 ```
 
 ## Correctness policy

@@ -57,6 +57,18 @@ def apply_rotary_embedding(q: Tensor, k: Tensor, cos: Tensor, sin: Tensor) -> tu
     return (q * cos) + (_rotate_half(q) * sin), (k * cos) + (_rotate_half(k) * sin)
 
 
+def apply_batched_rotary_embedding(
+    q: Tensor, k: Tensor, cos: Tensor, sin: Tensor
+) -> tuple[Tensor, Tensor]:
+    """Apply one absolute RoPE position per batch item during decode."""
+
+    if cos.ndim != 2 or sin.shape != cos.shape or cos.shape[0] != q.shape[0]:
+        raise ValueError("batched RoPE cos/sin must have shape [batch, head_dim]")
+    cos = cos[:, None, None, :]
+    sin = sin[:, None, None, :]
+    return (q * cos) + (_rotate_half(q) * sin), (k * cos) + (_rotate_half(k) * sin)
+
+
 class CausalSelfAttention(nn.Module):
     """Transparent grouped-query causal attention baseline.
 

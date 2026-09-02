@@ -18,3 +18,8 @@ ceiling derivation.
 `phase4-attention.json` fixes the paged GQA decode matrix before measurement. It covers context 1,
 17, 128, 512, and 2,048; batch 1 and 8; default and 7B-style head layouts; FP16/BF16/FP32; and
 retains every measured improvement or regression.
+
+`phase5-scheduler.json` fixes model/cache capacity, token budgets, batch limits, repetitions, and
+two seeded request plans. All policies receive the same prompts, generation limits, logical
+arrival/cancellation steps, model weights, paged cache, and Triton execution path; only the
+no/static/continuous refill policy changes.
