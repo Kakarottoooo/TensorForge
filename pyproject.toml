@@ -12,6 +12,11 @@ license = { text = "Apache-2.0" }
 authors = [{ name = "TensorForge Contributors" }]
 dependencies = ["torch>=2.5"]
 
+[project.urls]
+Homepage = "https://github.com/Kakarottoooo/TensorForge"
+Repository = "https://github.com/Kakarottoooo/TensorForge"
+Issues = "https://github.com/Kakarottoooo/TensorForge/issues"
+
 [project.optional-dependencies]
 dev = [
   "mypy>=1.11",

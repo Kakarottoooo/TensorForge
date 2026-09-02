@@ -1,110 +1,245 @@
-# TensorForge — GPU Inference Runtime & Kernel Optimization
+# TensorForge
 
-TensorForge is an open-source, correctness-first laboratory for building a small Llama-style GPU
-inference runtime from transparent PyTorch operators toward fused Triton kernels, paged KV caching,
-continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
-Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
+**A correctness-first, benchmark-driven LLM inference runtime built with PyTorch, Triton, paged KV
+caching, continuous batching, and CUDA Graphs.**
 
-**Current status: Phase 7A unified decode path implemented.** TensorForge now runs its Triton
-RMSNorm, fused residual/RMSNorm, and SwiGLU activation inside the address-stable paged decode bucket,
-including segmented `torch.compile` and explicit CUDA Graph modes. The cumulative experiment names
-the causal parent of every row so stable buffers, each fusion, compile, and graph remain separately
-attributable over the one canonical transactional paged cache.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
+[![PyTorch 2.5+](https://img.shields.io/badge/PyTorch-2.5%2B-EE4C2C)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-Current measured artifacts: [Phase 7A RTX 3080 Ti cumulative decode report](results/reference/phase7a-rtx3080ti-wsl/execution.md),
-[Phase 6 RTX 3080 Ti execution report](results/reference/phase6-rtx3080ti-wsl/execution.md),
-[Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
-[Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
-[Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
-[Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
-[512-token baseline profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
+TensorForge is a small research-grade GPU inference runtime for studying the systems problems behind
+autoregressive LLM serving. It starts from a transparent Llama-style PyTorch model and builds a
+single optimized decode path around custom Triton kernels, transactional paged KV memory,
+request-level scheduling, stable execution buckets, segmented `torch.compile`, and explicit CUDA
+Graph replay.
 
-## What is implemented
+It is not a chatbot, a Hugging Face wrapper, or a thin adapter over vLLM/TensorRT-LLM. The project
+keeps the mathematical reference, allocator, scheduler, kernels, execution policy, measurement
+tools, and raw experimental evidence visible so that every optimization can be explained and
+tested independently.
 
-- Decoder-only Llama-style model with token embedding, grouped-query causal attention, RoPE,
-  FP32-accumulating RMSNorm, SwiGLU MLP, residual paths, final norm, and output projection.
-- Deliberately unoptimized full-prefix greedy generation, which is the oracle for future KV-cached
-  decode.
-- Batch- and sequence-shape coverage plus FP32, FP16, and BF16 execution when the device supports it.
-- Unit contracts for causal isolation, operator formulas, generation equivalence, EOS termination,
-  invalid inputs, masks, and CUDA precision modes.
-- A phased architecture and experiment plan in
-  [`docs/implementation-plan.md`](docs/implementation-plan.md).
-- Reproducibility evidence and an explicit claim boundary in
-  [`docs/phase-1-validation.md`](docs/phase-1-validation.md).
-- A rigorous timing, synchronization, capacity, profiler, fair-comparison, and ablation contract in
-  [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md).
-- Measured Phase 2 evidence and its claim boundary in
-  [`docs/phase-2-validation.md`](docs/phase-2-validation.md).
-- Kernel program structure, numerical behavior, autotuning, integration, and roofline assumptions in
-  [`docs/kernel-design.md`](docs/kernel-design.md).
-- Measured Phase 3 evidence, cold-start cost, regressions policy, and claim boundary in
-  [`docs/phase-3-validation.md`](docs/phase-3-validation.md).
-- Paged ownership, append/rollback, online-softmax, split-KV, and stable-buffer contracts in
-  [`docs/paged-cache-and-attention.md`](docs/paged-cache-and-attention.md).
-- Measured Phase 4 evidence, split-KV ablation, failures, and claim boundary in
-  [`docs/phase-4-validation.md`](docs/phase-4-validation.md).
-- Lifecycle ownership, budgeting, policy semantics, and benchmark boundaries in
-  [`docs/continuous-batching.md`](docs/continuous-batching.md).
-- Measured Phase 5 policy ablation, variance, regressions, and claim boundary in
-  [`docs/phase-5-validation.md`](docs/phase-5-validation.md).
-- Address stability, capture boundaries, fallback semantics, and measurement design in
-  [`docs/execution-specialization.md`](docs/execution-specialization.md).
-- Measured Phase 6 mode ablation, cold setup costs, graph counters, variance, and claim boundary in
-  [`docs/phase-6-validation.md`](docs/phase-6-validation.md).
-- Unified decode dataflow and cumulative-ablation rules in
-  [`docs/cumulative-decode-path.md`](docs/cumulative-decode-path.md).
-- Measured Phase 7A cumulative attribution, retained regressions, and claim boundary in
-  [`docs/phase-7a-validation.md`](docs/phase-7a-validation.md).
+> **Status:** Phase 7A is complete. The canonical paged decode path contains Triton RMSNorm,
+> fused residual/RMSNorm, Triton SwiGLU, address-stable buckets, segmented `torch.compile`, and CUDA
+> Graph execution. All published results are tied to a clean Git commit and include regressions.
 
-## Baseline architecture
+## Why this project exists
+
+An inference optimization is only useful when four things remain true:
+
+1. token and logit semantics still match an independent full-prefix model;
+2. cache ownership remains correct through append, rollback, cancellation, failure, and exhaustion;
+3. the improvement survives an explicit timing boundary on real hardware;
+4. the result states which baseline it beat and which claims it does not support.
+
+TensorForge is organized around those constraints. The result is an inspectable runtime rather than
+a collection of disconnected kernel demos.
+
+## Highlights
+
+- A decoder-only Llama implementation with GQA, RoPE, RMSNorm, SwiGLU, causal masking, residual
+  paths, and FP32 accumulation for sensitive reductions.
+- Custom autotuned Triton kernels for RMSNorm, fused residual/RMSNorm, and SwiGLU, including
+  caller-owned output buffers for address-stable replay.
+- A real paged GQA decode-attention kernel using logical-to-physical block tables and online
+  softmax, plus a two-stage split-KV path for long contexts.
+- One transactional `PagedKVCache` with atomic reservation, append, full or partial commit,
+  rollback, deterministic reclamation, exhaustion behavior, and non-contiguous physical pages.
+- A continuous-batching scheduler with `queued -> prefill -> decode -> completed/failed` lifecycle,
+  request/global token budgets, cancellation, failure isolation, and leak-free cache recovery.
+- Shape-bucketed decode with persistent host/device controls and intermediate buffers, explicit
+  graph hit/miss/fallback accounting, and safe dynamic-eager fallback.
+- Reproducible benchmark manifests with P50/P95/P99 latency, throughput, cold JIT/compile/capture
+  cost, hardware/software identity, randomized variant order, numerical gates, and raw samples.
+- Stress coverage for request churn, KV exhaustion, padded lanes, cross-page writes, non-contiguous
+  mappings, partial rollback, and final allocator/budget cleanup.
+
+## Measured results
+
+The latest cumulative experiment used an NVIDIA RTX 3080 Ti under WSL2, PyTorch 2.5.1+cu121,
+CUDA 12.1, Triton 3.1.0, FP16 weights/cache, and a four-layer 256-wide test model. Six batch/context
+shapes produced 42 variant rows and 3,360 measured decode samples. Setup costs were excluded from
+steady-state latency, and every run passed an independent full-prefix logit gate.
+
+| Experiment | Result on the published workload | Important boundary |
+|---|---|---|
+| Triton scalar kernels | 1.40–5.00x over the explicit PyTorch formulas | Kernel-only Phase 3 matrix |
+| Paged GQA attention | 1.273–25.033x over expanded-GQA PyTorch | Not an SDPA/FlashAttention/vLLM comparison |
+| Split-KV attention | 3.51–3.55x over one-pass Triton at context 2,048 | Clean one-factor long-context ablation |
+| Continuous batching | +12.0% burst and +27.4% churn mean throughput vs static | Median TPOT regressed 11.4% and 9.4% |
+| Segmented `torch.compile` | Improved 4/6 final-path shapes by 13.1–27.0% | Regressed two shapes by 1.5–1.9% |
+| Explicit CUDA Graph | 52.9–87.8% lower mean latency vs fully fused eager | 137–152 ms capture cost; 480/0 hit/miss |
+
+CUDA Graph was the only uniformly positive final-path specialization. Individual Triton kernels
+were faster in isolation, but the cumulative experiment showed that Triton SwiGLU regressed four of
+six end-to-end shapes—by as much as 60.4% versus its causal parent. Address-stable eager and
+standalone RMSNorm also regressed on some shapes. These rows remain in the report because enabling
+an optimization is not evidence that it helped.
+
+Full P50/P95/P99 values, throughput, setup cost, per-run ordering, graph counters, hardware state,
+and raw samples are available in the
+[Phase 7A report](results/reference/phase7a-rtx3080ti-wsl/execution.md) and
+[validation record](docs/phase-7a-validation.md).
+
+## System architecture
 
 ```mermaid
-flowchart TD
-    T[Token IDs] --> E[Embedding]
-    E --> N1[RMSNorm]
-    N1 --> A[Explicit grouped-query attention + RoPE]
-    A --> R1[Residual add]
-    E --> R1
-    R1 --> N2[RMSNorm]
-    N2 --> S[SwiGLU MLP]
-    S --> R2[Residual add]
-    R1 --> R2
-    R2 --> D{More decoder blocks?}
-    D -->|yes| N1
-    D -->|no| FN[Final RMSNorm]
-    FN --> O[Output projection]
-    O --> L[Logits]
+flowchart LR
+    A[Arrivals] --> S[Lifecycle scheduler]
+    S -->|admit / cancel / fail| B[Token budget]
+    S -->|reserve / append / commit / rollback| C[PagedKVCache]
+    C --> BT[Logical block tables]
+    BT --> K[Physical K/V pages]
+
+    S --> D[Decode batch]
+    D --> R{Shape bucket eligible?}
+    R -->|no| E[Dynamic paged eager]
+    R -->|yes| H[Stable host/device controls]
+    H --> X[Bucketed decode executor]
+    X --> N[Triton RMSNorm]
+    N --> Q[Q/K/V projection + RoPE]
+    Q --> W[Capture-safe paged KV write]
+    W --> P[Triton paged GQA attention]
+    P --> F[Fused residual/RMSNorm]
+    F --> G[GEMMs + Triton SwiGLU]
+    G --> O[Stable logits buffer]
+
+    X --> M{Execution mode}
+    M -->|eager| X
+    M -->|segmented compile| X
+    M -->|CUDA Graph replay| X
 ```
 
-The baseline attention intentionally spells out projection, RoPE, grouped KV expansion, score
-matmul, causal masking, FP32 softmax, and value aggregation. This is not expected to beat PyTorch
-SDPA; it makes correctness and Phase 2 profiler attribution inspectable. Likewise, baseline decode
-recomputes the prefix on every token. Those are measured control paths, not proposed optimizations.
+The scheduler owns request state and selection. `PagedKVCache` exclusively owns sequences,
+reservations, pages, and transaction outcomes. Kernels own tensor math. The bucket executor owns
+stable staging and replay buffers. This separation prevents CUDA Graph or batching policy from
+creating a second cache implementation.
 
-## Quick start
+## Core implementation
 
-Python 3.11+ and PyTorch 2.5+ are required.
+### 1. Mathematical reference
+
+The reference model spells out token embedding, grouped-query attention, RoPE, FP32 softmax,
+RMSNorm, SwiGLU, residual connections, and output projection. Full-prefix greedy generation
+recomputes all previous tokens and acts as the independent semantic oracle for incremental decode.
+
+The explicit baseline is intentionally readable and is not presented as the fastest available
+PyTorch attention implementation.
+
+### 2. Triton scalar and fusion kernels
+
+RMSNorm and residual/RMSNorm reduce in FP32, then cast back to the input dtype. SwiGLU implements
+`silu(gate) * up`. Autotuning searches warp and block configurations across decode, batched decode,
+prefill, awkward-width, FP16, BF16, and FP32 shapes.
+
+Every kernel supports numerical correctness gates and records first-call tuning/JIT separately from
+steady state. Caller-owned outputs let the same kernels execute inside persistent decode buckets and
+CUDA Graph captures without changing addresses.
+
+### 3. Paged GQA decode attention
+
+Each logical sequence stores a block table rather than requiring contiguous physical K/V storage.
+The decode kernel maps logical token positions through physical page IDs, maps query heads to KV
+heads without materializing repeated K/V tensors, applies a stable online softmax, and writes into a
+caller-provided output tensor.
+
+Long contexts can use split-KV: the first kernel produces partition statistics and partial outputs;
+the second merges them with the log-sum-exp correction. The implementation supports unequal batch
+lengths, partial pages, and deliberately non-contiguous page tables.
+
+### 4. Transactional paged KV cache
+
+An append is a transaction:
+
+```text
+reserve logical tokens and any required physical pages
+    -> expose append locations
+    -> write every model layer
+    -> commit all, commit an accepted prefix, or roll back
+```
+
+Allocation failure is atomic. Rollback reclaims only transaction-owned pages. Release cancels active
+reservations and returns the complete sequence allocation. Partial commit is already part of the
+cache contract, although speculative draft/target execution is intentionally not implemented.
+
+### 5. Continuous batching
+
+Requests move through explicit `queued`, `prefill`, `decode`, `completed`, and `failed` states.
+Admission checks both per-request and global token budgets before mutating runtime state. No
+batching, static batching, and continuous batching share the same executor and cache, making the
+policy comparison attributable.
+
+Seeded stress workloads interleave arrivals, execution, and cancellation while checking maximum
+batch size, token budget, cache ownership, terminal accounting, and leak-free shutdown after every
+operation.
+
+### 6. Stable buckets, compile, and CUDA Graphs
+
+A bucket is keyed by batch and context capacity. It owns persistent pinned-host controls, device
+controls, block tables, positions, append destinations, masks, attention workspaces, intermediate
+activations, and logits. Inactive padded lanes are masked from KV writes.
+
+`torch.compile(dynamic=False)` specializes the PyTorch model segments; custom Triton calls remain
+explicit graph boundaries. Explicit CUDA Graph mode captures the fixed-address GPU path after
+side-stream warmup. Scheduler decisions, cache allocation, transaction completion, and two small
+host-to-device control copies stay outside capture. Oversized shapes fall back to dynamic eager and
+record the reason.
+
+## Correctness invariants
+
+Performance changes are accepted only after these contracts pass:
+
+- incremental logits and greedy tokens match independent full-prefix execution;
+- FP16/BF16 kernels satisfy dtype-specific combined absolute/relative tolerances;
+- logical token order is preserved across partial and non-contiguous physical pages;
+- allocation exhaustion does not leave partially owned blocks;
+- commit, partial commit, rollback, cancellation, and failure restore exact allocator accounting;
+- inactive graph lanes cannot write KV state;
+- persistent buffer addresses do not move between appends or graph replays;
+- every stress or benchmark run terminates with zero leaked sequences, pages, reservations, and
+  token budget.
+
+The current full WSL CUDA/Triton suite contains **167 passing tests**. The Windows control suite
+contains **69 passing tests**; Triton-only tests are capability-skipped there because upstream
+Triton execution requires Linux.
+
+## Installation
+
+### CPU/reference development
 
 ```bash
+git clone https://github.com/Kakarottoooo/TensorForge.git
+cd TensorForge
 python -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-pytest
+pytest -q
+```
+
+On Windows, activate the environment with `.venv\Scripts\Activate.ps1`.
+
+### CUDA and Triton
+
+The published GPU environment uses Python 3.11 in Linux/WSL2. An NVIDIA GPU and compatible driver
+are required.
+
+```bash
+bash scripts/setup_phase3_wsl.sh
+source ~/.venvs/tensorforge-py311/bin/activate
+pytest -q
 python -m scripts.smoke_generate --device cuda --dtype fp16
 ```
 
-On Windows, activate with `.venv\\Scripts\\Activate.ps1`. Triton execution uses Linux/WSL;
-`pip install -e ".[dev,kernels]"` installs the kernel dependencies where supported.
+The helper pins the project-tested CUDA/PyTorch/Triton dependency set. A generic Linux environment
+can instead install `.[dev,kernels]`, but version drift should be recorded with new measurements.
 
-Run the fast measurement-path check, the curated reference manifest, and a profiler capture with:
+## Reproducing the experiments
+
+All committed experiments use immutable JSON manifests. Write exploratory output under
+`results/local/`; curated `results/reference/` data is commit-associated evidence.
 
 ```bash
-python -m scripts.run_benchmarks \
-  --manifest benchmarks/phase2-smoke.json \
-  --output-dir results/local/phase2-smoke \
-  --device cuda:0
-
+# PyTorch baseline and profiler
 python -m scripts.run_benchmarks \
   --manifest benchmarks/phase2-reference.json \
   --output-dir results/local/phase2-reference \
@@ -113,86 +248,99 @@ python -m scripts.run_benchmarks \
 python -m scripts.profile_model \
   --output-dir results/local/profile \
   --prompt-length 512 --decode-steps 4 --precision fp16
-```
 
-Use `python -m scripts.nsys_profile --output results/local/nsys/baseline` when Nsight Systems is on
-`PATH`. See the [benchmark methodology](docs/benchmark-methodology.md) before comparing rows.
-
-Phase 3 uses Linux/WSL because upstream Triton does not support this Windows Python environment:
-
-```bash
-bash scripts/setup_phase3_wsl.sh
-source ~/.venvs/tensorforge-py311/bin/activate
-pytest -q
+# Triton scalar kernels and roofline model
 python -m scripts.benchmark_kernels \
   --manifest benchmarks/phase3-kernels.json \
   --output-dir results/local/phase3-kernels
 
+# Paged GQA attention and split-KV
 python -m scripts.benchmark_attention \
   --manifest benchmarks/phase4-attention.json \
   --output-dir results/local/phase4-attention
 
+# Request lifecycle and scheduling policies
 python -m scripts.benchmark_scheduler \
   --manifest benchmarks/phase5-scheduler.json \
   --output-dir results/local/phase5-scheduler
 
+# Stable eager / compile / CUDA Graph
 python -m scripts.benchmark_execution \
   --manifest benchmarks/phase6-execution.json \
   --output-dir results/local/phase6-execution
 
+# Final cumulative decode-path ablation
 python -m scripts.benchmark_execution \
   --manifest benchmarks/phase7a-cumulative.json \
   --output-dir results/local/phase7a-cumulative
 ```
 
-## Correctness policy
+For Nsight Systems, use:
 
-The PyTorch model is the semantic reference. Low-precision operators accumulate sensitive
-reductions in FP32. Later kernels must compare multiple shapes and supported dtypes with documented
-absolute/relative tolerances. Generation tests compare every greedy token against independent
-full-prefix steps. An optimization that exceeds tolerance or changes output behavior is rejected or
-explicitly scoped; throughput never overrides correctness.
+```bash
+python -m scripts.nsys_profile --output results/local/nsys/baseline
+```
 
-## Roadmap and benchmark methodology
+Before comparing reports, confirm that hardware fingerprint, model shape, precision, workload,
+timing boundary, and measured code commit are compatible. Phase-level speedups use different
+workloads and must not be multiplied.
 
-The [implementation plan](docs/implementation-plan.md) specifies nine gated phases, experiment
-records, the required workload matrix, OOM accounting, and one-factor-at-a-time ablations. Phase 2
-records TTFT, TPOT, tokens/s, per-request P50/P95/P99, allocated/peak memory, utilization when
-available, and complete hardware/software metadata in JSON, CSV, and Markdown. The same schema names
-eager/compile/CUDA Graph modes, kernel implementations, cache and scheduler policies,
-standard/speculative decode, and tensor-parallel world size so later ablations remain comparable.
+## Benchmark methodology
 
-Later reports will explicitly cover optimizations that lose on small or awkward shapes. See
-[`results/`](results/README.md) and [`benchmarks/`](benchmarks/README.md) for curated measurements and
-immutable manifests. TensorForge does not publish invented example measurements.
+- CUDA events measure GPU work; synchronization boundaries are explicit.
+- Warmups and cold JIT/autotune/compile/capture costs are reported separately.
+- Variant order is seed-randomized for every measured repetition.
+- Reports retain P50/P95/P99, mean throughput, raw repetitions, and runtime GPU state.
+- Each custom kernel is correctness-gated before timing.
+- Every end-to-end execution run checks its first measured logit against full-prefix execution.
+- Regressions are emitted as results rather than discarded.
+- Logical bandwidth and arithmetic intensity use documented semantic-byte/FLOP models; they are not
+  substitutes for Nsight Compute DRAM and occupancy counters.
 
-## Design tradeoffs
+See [benchmark methodology](docs/benchmark-methodology.md) for the complete measurement contract.
 
-- **Clarity before speed:** explicit attention is expensive but supplies a stable oracle.
-- **Small default model:** dimensions fit commodity GPUs and make experiments accessible; this is
-  infrastructure validation, not a language-quality claim.
-- **No heavyweight inference engine:** optimized behavior remains attributable to this repository.
-- **Transactional cache ownership:** scheduler policy remains outside the cache; failed, cancelled,
-  and partially accepted appends have explicit page-reclamation semantics.
-- **Single-GPU first:** multi-GPU work remains optional until the one-GPU path is correct and measured.
-
-## Repository map
+## Repository layout
 
 ```text
-tensorforge/model/       mathematical reference model and operators
-tensorforge/runtime/     execution and generation policy
-tensorforge/kernels/     Triton kernels (Phase 3)
-tensorforge/cache/       KV-cache lifecycle (Phase 4)
-tensorforge/scheduler/   request state machine (Phase 5)
-tensorforge/profiling/   profiler capture and analysis (Phase 2)
-tensorforge/metrics/     latency and runtime instruments (Phase 2)
-tensorforge/benchmark/   workloads, runners, and report generation (Phase 2)
-tests/                   CPU correctness and capability-gated CUDA tests
-scripts/                 reproducible entry points
-benchmarks/              immutable workload definitions
-results/                 raw and rendered measured results
+tensorforge/model/       Llama-style mathematical reference
+tensorforge/kernels/     Triton scalar, KV-write, and paged-attention kernels
+tensorforge/cache/       Transactional paged KV allocator and block tables
+tensorforge/scheduler/   Request lifecycle, budgeting, and batching policies
+tensorforge/runtime/     Dynamic and bucketed incremental decode executors
+tensorforge/benchmark/   Manifests, runners, hardware metadata, and reporting
+tensorforge/profiling/   PyTorch profiler capture and analysis
+tensorforge/metrics/     Latency statistics and GPU telemetry
+tests/                   CPU, CUDA, Triton, failure, and end-to-end contracts
+benchmarks/              Immutable experiment definitions
+results/reference/       Raw and rendered commit-associated measurements
+docs/                    Architecture, methodology, and validation records
+scripts/                 Reproducible CLI entry points
 ```
+
+## Documentation
+
+| Topic | Design | Measured validation |
+|---|---|---|
+| Reference model | [Implementation plan](docs/implementation-plan.md) | [Phase 1](docs/phase-1-validation.md) |
+| Measurement/profiling | [Benchmark methodology](docs/benchmark-methodology.md) | [Phase 2](docs/phase-2-validation.md) |
+| Triton scalar kernels | [Kernel design](docs/kernel-design.md) | [Phase 3](docs/phase-3-validation.md) |
+| Paged cache and GQA attention | [Cache and attention](docs/paged-cache-and-attention.md) | [Phase 4](docs/phase-4-validation.md) |
+| Continuous batching | [Scheduler design](docs/continuous-batching.md) | [Phase 5](docs/phase-5-validation.md) |
+| Compile and CUDA Graphs | [Execution specialization](docs/execution-specialization.md) | [Phase 6](docs/phase-6-validation.md) |
+| Unified final path | [Cumulative decode path](docs/cumulative-decode-path.md) | [Phase 7A](docs/phase-7a-validation.md) |
+
+## Scope and limitations
+
+TensorForge demonstrates infrastructure behavior with a deliberately small randomly initialized
+model; it makes no language-quality claim. The published PyTorch attention control is an explicit
+expanded-GQA implementation, not SDPA or FlashAttention. Results come from a shared Windows display
+GPU under WSL2, not an isolated persistence-mode datacenter accelerator.
+
+The repository does not currently implement production prefill, prefix sharing, sliding-window
+attention, quantized KV cache, speculative draft/target execution, tensor parallelism, multi-GPU
+NCCL scaling, or a fair end-to-end vLLM comparison. Those are deliberately excluded from current
+claims rather than represented by shallow placeholders.
 
 ## License
 
-Apache-2.0.
+Apache License 2.0. See [LICENSE](LICENSE).
