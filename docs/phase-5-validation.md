@@ -31,7 +31,9 @@ CUDA tests compare heterogeneous batched logits with independent full-prefix rec
 FP32, FP16, and BF16. A stricter FP32 comparison caught a cross-request RoPE broadcast defect that
 low-precision tolerance could conceal; the final helper reshapes one position per batch item.
 End-to-end continuous generation for three different request lengths matches independent
-full-prefix greedy tokens and terminates with zero used pages.
+full-prefix greedy tokens and terminates with zero used pages. Additional real-GPU scheduler tests
+cancel a request after it owns a physical page and drive a two-request batch into one-block
+exhaustion; both require zero pages, reservations, sequences, and outstanding budget afterward.
 
 A real one-block cache-exhaustion test submits two requests in one batch: the request that can append
 inside its existing page commits, while the request requiring a new page receives
@@ -103,11 +105,11 @@ python -m mypy tensorforge scripts
 Success: no issues found in 44 source files
 
 python -m pytest -q
-65 passed, 83 skipped
+65 passed, 85 skipped
 
 WSL CUDA/Triton environment:
 python -m pytest -q
-148 passed
+150 passed
 ```
 
 Windows skips Triton-only tests; WSL executes the complete CPU, CUDA, paged-attention, integrated
