@@ -150,6 +150,35 @@ def test_release_cancels_pending_append_and_returns_sequence_slot() -> None:
     assert cache.layer_view("replacement", 0).block_table.tolist() == [-1, -1, -1]
 
 
+def test_optimized_writer_metadata_resolves_mapping_and_allows_commit() -> None:
+    config = PagedKVCacheConfig(
+        num_layers=2,
+        num_blocks=3,
+        block_size=2,
+        num_kv_heads=1,
+        head_dim=2,
+        max_sequences=1,
+        max_sequence_length=6,
+        dtype=torch.float32,
+        device=torch.device("cpu"),
+    )
+    cache = PagedKVCache(config)
+    cache.create_sequence("optimized")
+    reservation = cache.begin_append("optimized", 3)
+
+    assert cache.sequence_layout("optimized", reservation).physical_blocks == (0, 1)
+    assert cache.sequence_layout("optimized", reservation).context_length == 3
+    assert cache.append_location(reservation, 0).physical_block == 0
+    assert cache.append_location(reservation, 2).physical_block == 1
+    assert cache.append_location(reservation, 2).block_offset == 0
+    for layer_index in range(config.num_layers):
+        cache.record_layer_write(reservation, layer_index)
+    cache.commit(reservation)
+
+    assert cache.sequence_layout("optimized").context_length == 3
+    assert cache.stats().reserved_tokens == 0
+
+
 def test_seeded_request_churn_preserves_allocator_accounting() -> None:
     config = PagedKVCacheConfig(
         num_layers=2,

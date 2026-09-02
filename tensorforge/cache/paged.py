@@ -81,6 +81,18 @@ class PagedLayerView:
     context_length: int
 
 
+@dataclass(frozen=True, slots=True)
+class CacheAppendLocation:
+    physical_block: int
+    block_offset: int
+
+
+@dataclass(frozen=True, slots=True)
+class SequenceLayout:
+    physical_blocks: tuple[int, ...]
+    context_length: int
+
+
 @dataclass(slots=True)
 class _SequenceState:
     slot: int
@@ -266,6 +278,43 @@ class PagedKVCache:
         """Expose immutable ownership state for accounting and stress verification."""
 
         return tuple(self._block_owners)
+
+    def sequence_layout(
+        self, request_id: str, reservation: AppendReservation | None = None
+    ) -> SequenceLayout:
+        """Return CPU-owned logical mapping metadata without a device synchronization."""
+
+        sequence = self._sequence(request_id)
+        context_length = sequence.length
+        if reservation is not None:
+            self._reservation(reservation)
+            if reservation.request_id != request_id:
+                raise ValueError("reservation belongs to another sequence")
+            context_length = reservation.end_position
+        return SequenceLayout(tuple(sequence.blocks), context_length)
+
+    def append_location(
+        self, reservation: AppendReservation, token_offset: int = 0
+    ) -> CacheAppendLocation:
+        """Resolve a reserved logical token to its physical page destination."""
+
+        self._reservation(reservation)
+        if not 0 <= token_offset < reservation.token_count:
+            raise IndexError("token_offset is outside the append reservation")
+        sequence = self._sequence(reservation.request_id)
+        position = reservation.start_position + token_offset
+        logical_block, block_offset = divmod(position, self.config.block_size)
+        return CacheAppendLocation(sequence.blocks[logical_block], block_offset)
+
+    def record_layer_write(
+        self, reservation: AppendReservation, layer_index: int
+    ) -> None:
+        """Record that an optimized writer populated one complete reserved cache layer."""
+
+        state = self._reservation(reservation)
+        if not 0 <= layer_index < self.config.num_layers:
+            raise IndexError("layer_index is out of range")
+        state.written_layers.add(layer_index)
 
     def layer_view(
         self,

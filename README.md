@@ -5,11 +5,11 @@ inference runtime from transparent PyTorch operators toward fused Triton kernels
 continuous batching, and shape-aware CUDA Graph execution. It is deliberately not a chatbot, a
 Hugging Face wrapper, or a thin layer over vLLM/TensorRT-LLM.
 
-**Current status: Phase 5 continuous batching implemented.** TensorForge now contains a
-token-budgeted request lifecycle, no/static/continuous batching policies, heterogeneous batched
-decode over the transactional paged cache, per-request failure and cancellation reclamation, and
-seeded churn stress. The GPU path remains checked token-by-token against independent full-prefix
-execution. Results remain scoped to their exact model, commit, workload, and environment.
+**Current status: Phase 6 execution specialization implemented.** TensorForge now adds
+address-stable batch/context decode buckets, persistent pinned control staging, capture-safe masked
+KV writes, segmented `torch.compile`, explicit CUDA Graph capture/replay, and shape-aware dynamic
+eager fallback on top of the Phase 5 scheduler and the one canonical transactional paged cache.
+Graph hit/miss, fallback reasons, setup cost, steady-state latency, and regressions are measured.
 
 Current measured artifacts: [Phase 5 RTX 3080 Ti scheduler report](results/reference/phase5-rtx3080ti-wsl/scheduler.md),
 [Phase 4 RTX 3080 Ti paged-attention report](results/reference/phase4-rtx3080ti-wsl/attention.md),
@@ -46,6 +46,8 @@ Current measured artifacts: [Phase 5 RTX 3080 Ti scheduler report](results/refer
   [`docs/continuous-batching.md`](docs/continuous-batching.md).
 - Measured Phase 5 policy ablation, variance, regressions, and claim boundary in
   [`docs/phase-5-validation.md`](docs/phase-5-validation.md).
+- Address stability, capture boundaries, fallback semantics, and measurement design in
+  [`docs/execution-specialization.md`](docs/execution-specialization.md).
 
 ## Baseline architecture
 
@@ -125,6 +127,10 @@ python -m scripts.benchmark_attention \
 python -m scripts.benchmark_scheduler \
   --manifest benchmarks/phase5-scheduler.json \
   --output-dir results/local/phase5-scheduler
+
+python -m scripts.benchmark_execution \
+  --manifest benchmarks/phase6-execution.json \
+  --output-dir results/local/phase6-execution
 ```
 
 ## Correctness policy

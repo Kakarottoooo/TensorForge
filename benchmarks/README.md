@@ -23,3 +23,7 @@ retains every measured improvement or regression.
 two seeded request plans. All policies receive the same prompts, generation limits, logical
 arrival/cancellation steps, model weights, paged cache, and Triton execution path; only the
 no/static/continuous refill policy changes.
+
+`phase6-execution.json` fixes batch/context buckets, eligible shapes, one deliberate batch-overflow
+shape, setup length, decode steps, and repetition count. Eager, segmented `torch.compile`, and
+explicit CUDA Graph rows share model weights, cache ownership, custom kernels, and bucket buffers.
