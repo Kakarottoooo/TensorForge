@@ -68,7 +68,7 @@ class ExecutionManifest:
             raise ValueError(f"unsupported precision: {self.precision}")
         if self.block_size <= 0 or self.num_blocks <= 0:
             raise ValueError("cache dimensions must be positive")
-        if self.warmup_repetitions < 0 or self.measured_repetitions <= 0:
+        if self.warmup_repetitions <= 0 or self.measured_repetitions <= 0:
             raise ValueError("invalid repetition count")
         for case in self.cases:
             total_length = case.initial_context + case.decode_steps
@@ -336,15 +336,20 @@ def run_execution_suite(
     model.eval()
     case_results: list[dict[str, Any]] = []
     for case in manifest.cases:
+        warmup_runs_by_mode: dict[DecodeExecutionMode, list[ExecutionRun]] = {
+            mode: [] for mode in _MODES
+        }
         for warmup in range(manifest.warmup_repetitions):
             for mode in _MODES:
-                _run_once(
-                    manifest,
-                    case,
-                    model=model,
-                    device=device,
-                    mode=mode,
-                    repetition=-(warmup + 1),
+                warmup_runs_by_mode[mode].append(
+                    _run_once(
+                        manifest,
+                        case,
+                        model=model,
+                        device=device,
+                        mode=mode,
+                        repetition=-(warmup + 1),
+                    )
                 )
         runs_by_mode: dict[DecodeExecutionMode, list[ExecutionRun]] = {
             mode: [] for mode in _MODES
@@ -373,9 +378,20 @@ def run_execution_suite(
             latency = aggregate["cuda_step_latency_ms"]["mean"]
             aggregate["mean_latency_speedup_vs_eager"] = eager_latency / latency
             aggregate["mean_latency_change_pct_vs_eager"] = (latency / eager_latency - 1) * 100
+            cold_setup = warmup_runs_by_mode[mode][0]
+            aggregate["cold_setup_wall_ms"] = cold_setup.setup_wall_ms
+            aggregate["cold_capture_time_ms"] = cold_setup.setup_metrics[
+                "capture_time_ms"
+            ]
+            aggregate["cold_compile_time_ms"] = cold_setup.setup_metrics[
+                "compile_time_ms"
+            ]
             modes.append(
                 {
                     "mode": mode.value,
+                    "warmup_runs": [
+                        asdict(run) for run in warmup_runs_by_mode[mode]
+                    ],
                     "runs": [asdict(run) for run in runs_by_mode[mode]],
                     "aggregate": aggregate,
                 }
@@ -449,6 +465,9 @@ def write_execution_reports(
                     "shape_fallbacks": metrics["shape_fallbacks"],
                     "capture_time_ms_mean": aggregate["capture_time_ms"]["mean"],
                     "compile_time_ms_mean": aggregate["compile_time_ms"]["mean"],
+                    "cold_setup_wall_ms": aggregate["cold_setup_wall_ms"],
+                    "cold_capture_time_ms": aggregate["cold_capture_time_ms"],
+                    "cold_compile_time_ms": aggregate["cold_compile_time_ms"],
                     "addresses_stable": aggregate["address_stable_all_runs"],
                     "git_commit": result["hardware"]["git_commit"],
                     "git_dirty": result["hardware"]["git_dirty"],
@@ -475,7 +494,7 @@ def write_execution_reports(
         "separately. Every run passes an independent full-prefix numerical gate.",
         "",
         "| Case | Mode | CUDA latency P50/P95/P99 ms | Mean tok/s | Mean change vs eager | "
-        "Graph hit/miss | Shape fallback | Capture/compile ms |",
+        "Graph hit/miss | Shape fallback | Cold setup/capture/compile ms |",
         "|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
@@ -485,7 +504,8 @@ def write_execution_reports(
             f"{row['tokens_per_second_mean']:.2f} | "
             f"{row['latency_change_pct_vs_eager']:+.1f}% | "
             f"{row['graph_hits']}/{row['graph_misses']} | {row['shape_fallbacks']} | "
-            f"{row['capture_time_ms_mean']:.2f}/{row['compile_time_ms_mean']:.2f} |"
+            f"{row['cold_setup_wall_ms']:.2f}/{row['cold_capture_time_ms']:.2f}/"
+            f"{row['cold_compile_time_ms']:.2f} |"
         )
     lines.extend(
         [
