@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "warmup_ms": 25,
-  "repetition_ms": 100,
+  "warmup_ms": 50,
+  "repetition_ms": 500,
   "copy_buffer_mib": 256,
   "cases": [
     {"name": "default-c1-b1", "batch": 1, "query_heads": 8, "kv_heads": 4, "head_dim": 64, "context_length": 1, "block_size": 16, "precision": "fp16"},
