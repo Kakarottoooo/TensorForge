@@ -11,8 +11,9 @@ kernels plus an integrated Llama execution path, GPU correctness grid, kernel mi
 explicit arithmetic-intensity/empirical-roofline accounting. Results remain scoped to their exact
 model, commit, workload, and environment.
 
-Current measured artifacts: [RTX 3080 Ti baseline report](results/reference/phase2-rtx3080ti/benchmark.md)
-and [512-token profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
+Current measured artifacts: [Phase 3 RTX 3080 Ti kernel report](results/reference/phase3-rtx3080ti-wsl/kernels.md),
+[Phase 2 baseline report](results/reference/phase2-rtx3080ti/benchmark.md), and
+[512-token baseline profiler summary](results/reference/phase2-rtx3080ti/profile-p512-b1-fp16/profile-summary.md).
 
 ## What is implemented
 
@@ -33,6 +34,8 @@ and [512-token profiler summary](results/reference/phase2-rtx3080ti/profile-p512
   [`docs/phase-2-validation.md`](docs/phase-2-validation.md).
 - Kernel program structure, numerical behavior, autotuning, integration, and roofline assumptions in
   [`docs/kernel-design.md`](docs/kernel-design.md).
+- Measured Phase 3 evidence, cold-start cost, regressions policy, and claim boundary in
+  [`docs/phase-3-validation.md`](docs/phase-3-validation.md).
 
 ## Baseline architecture
 
@@ -71,8 +74,8 @@ pytest
 python -m scripts.smoke_generate --device cuda --dtype fp16
 ```
 
-On Windows, activate with `.venv\\Scripts\\Activate.ps1`. Official Triton work is planned for a
-Linux CUDA environment in Phase 3; `pip install -e ".[dev,kernels]"` installs it where supported.
+On Windows, activate with `.venv\\Scripts\\Activate.ps1`. Triton execution uses Linux/WSL;
+`pip install -e ".[dev,kernels]"` installs the kernel dependencies where supported.
 
 Run the fast measurement-path check, the curated reference manifest, and a profiler capture with:
 

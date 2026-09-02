@@ -1,0 +1,1399 @@
+{
+  "cases": [
+    {
+      "case": {
+        "columns": 513,
+        "eps": 1e-06,
+        "name": "rms-odd",
+        "operation": "rms_norm",
+        "precision": "fp16",
+        "rows": 17,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 710.49339,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 2
+      },
+      "timings": [
+        {
+          "achieved_gflops": 1.7049805118214305,
+          "arithmetic_intensity_flops_per_byte": 0.9723753829016987,
+          "effective_bandwidth_gbps": 1.7534180130450647,
+          "empirical_copy_bandwidth_pct": 0.2153780413547019,
+          "empirical_memory_roofline_gflops": 791.622256891793,
+          "implementation": "torch_standard",
+          "logical_bytes": 35910,
+          "modeled_flops": 34918,
+          "p05_ms": 0.020479999482631683,
+          "p50_ms": 0.020479999482631683,
+          "p95_ms": 0.024756792932748795,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.21537804135470193,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 6.819922047285722,
+          "arithmetic_intensity_flops_per_byte": 0.9723753829016987,
+          "effective_bandwidth_gbps": 7.013672052180259,
+          "empirical_copy_bandwidth_pct": 0.8615121654188076,
+          "empirical_memory_roofline_gflops": 791.622256891793,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 35910,
+          "modeled_flops": 34918,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.005119999870657921,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 0.8615121654188077,
+          "speedup_vs_torch": 4.0
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "rms-decode-1",
+        "operation": "rms_norm",
+        "precision": "fp16",
+        "rows": 1,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 111.693443,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 2
+      },
+      "timings": [
+        {
+          "achieved_gflops": 0.8422080966124672,
+          "arithmetic_intensity_flops_per_byte": 0.666748046875,
+          "effective_bandwidth_gbps": 1.2631579508329056,
+          "empirical_copy_bandwidth_pct": 0.15515780227416764,
+          "empirical_memory_roofline_gflops": 542.8074413713754,
+          "implementation": "torch_standard",
+          "logical_bytes": 24576,
+          "modeled_flops": 16386,
+          "p05_ms": 0.018432000651955605,
+          "p50_ms": 0.01945599913597107,
+          "p95_ms": 0.022592000663280487,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.15515780227416767,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 3.2003907058486694,
+          "arithmetic_intensity_flops_per_byte": 0.666748046875,
+          "effective_bandwidth_gbps": 4.800000121258202,
+          "empirical_copy_bandwidth_pct": 0.5895996373526209,
+          "empirical_memory_roofline_gflops": 542.8074413713754,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 24576,
+          "modeled_flops": 16386,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 0.5895996373526209,
+          "speedup_vs_torch": 3.799999927240422
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "rms-decode-16",
+        "operation": "rms_norm",
+        "precision": "fp16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 115.935904,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 10.241250258715743,
+          "arithmetic_intensity_flops_per_byte": 0.9698153409090909,
+          "effective_bandwidth_gbps": 10.560000266768045,
+          "empirical_copy_bandwidth_pct": 1.297119202175766,
+          "empirical_memory_roofline_gflops": 789.5380965401824,
+          "implementation": "torch_standard",
+          "logical_bytes": 270336,
+          "modeled_flops": 262176,
+          "p05_ms": 0.02457600086927414,
+          "p50_ms": 0.025599999353289604,
+          "p95_ms": 0.03047199919819832,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 1.2971192021757658,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 42.67187349065934,
+          "arithmetic_intensity_flops_per_byte": 0.9698153409090909,
+          "effective_bandwidth_gbps": 43.99999844368242,
+          "empirical_copy_bandwidth_pct": 5.404663014698191,
+          "empirical_memory_roofline_gflops": 789.5380965401824,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 270336,
+          "modeled_flops": 262176,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.0071680000983178616,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 5.40466301469819,
+          "speedup_vs_torch": 4.166666414029258
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 512,
+        "eps": 1e-06,
+        "name": "rms-prefill-default",
+        "operation": "rms_norm",
+        "precision": "fp16",
+        "rows": 2048,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.001953125,
+        "maximum_relative_error": 0.0009389671613462269,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 112.997571,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 1
+      },
+      "timings": [
+        {
+          "achieved_gflops": 124.24242327204,
+          "arithmetic_intensity_flops_per_byte": 1.0007322431047108,
+          "effective_bandwidth_gbps": 124.15151418184095,
+          "empirical_copy_bandwidth_pct": 15.249934560252614,
+          "empirical_memory_roofline_gflops": 814.7079109169761,
+          "implementation": "torch_standard",
+          "logical_bytes": 4195328,
+          "modeled_flops": 4198400,
+          "p05_ms": 0.03276799991726875,
+          "p50_ms": 0.03379200026392937,
+          "p95_ms": 0.03788800165057182,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 15.249934560252612,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 455.5555394421665,
+          "arithmetic_intensity_flops_per_byte": 1.0007322431047108,
+          "effective_bandwidth_gbps": 455.22220612062347,
+          "empirical_copy_bandwidth_pct": 55.91642517984467,
+          "empirical_memory_roofline_gflops": 814.7079109169761,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 4195328,
+          "modeled_flops": 4198400,
+          "p05_ms": 0.009216000325977802,
+          "p50_ms": 0.009216000325977802,
+          "p95_ms": 0.010239999741315842,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 55.91642517984467,
+          "speedup_vs_torch": 3.6666665656117035
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "rms-prefill-wide",
+        "operation": "rms_norm",
+        "precision": "fp16",
+        "rows": 128,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0009765625,
+        "maximum_relative_error": 0.0008291873964481056,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 119.608483,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 68.27500172477161,
+          "arithmetic_intensity_flops_per_byte": 0.9962305447470817,
+          "effective_bandwidth_gbps": 68.533335064631,
+          "empirical_copy_bandwidth_pct": 8.418172599979087,
+          "empirical_memory_roofline_gflops": 811.0430252397205,
+          "implementation": "torch_standard",
+          "logical_bytes": 2105344,
+          "modeled_flops": 2097408,
+          "p05_ms": 0.02969600073993206,
+          "p50_ms": 0.030719999223947525,
+          "p95_ms": 0.03379200026392937,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 8.418172599979085,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 292.6071388436791,
+          "arithmetic_intensity_flops_per_byte": 0.9962305447470817,
+          "effective_bandwidth_gbps": 293.71428168563614,
+          "empirical_copy_bandwidth_pct": 36.07788116508283,
+          "empirical_memory_roofline_gflops": 811.0430252397205,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 2105344,
+          "modeled_flops": 2097408,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.0071680000983178616,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 36.07788116508283,
+          "speedup_vs_torch": 4.285714118664241
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "rms-decode-bf16",
+        "operation": "rms_norm",
+        "precision": "bf16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.03,
+        "maximum_absolute_error": 0.0,
+        "maximum_relative_error": 0.0,
+        "rtol": 0.03
+      },
+      "first_call_wall_ms": 116.292352,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 10.241250258715743,
+          "arithmetic_intensity_flops_per_byte": 0.9698153409090909,
+          "effective_bandwidth_gbps": 10.560000266768045,
+          "empirical_copy_bandwidth_pct": 1.297119202175766,
+          "empirical_memory_roofline_gflops": 789.5380965401824,
+          "implementation": "torch_standard",
+          "logical_bytes": 270336,
+          "modeled_flops": 262176,
+          "p05_ms": 0.02457600086927414,
+          "p50_ms": 0.025599999353289604,
+          "p95_ms": 0.027648000046610832,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 1.2971192021757658,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 51.20625129357871,
+          "arithmetic_intensity_flops_per_byte": 0.9698153409090909,
+          "effective_bandwidth_gbps": 52.80000133384023,
+          "empirical_copy_bandwidth_pct": 6.48559601087883,
+          "empirical_memory_roofline_gflops": 789.5380965401824,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 270336,
+          "modeled_flops": 262176,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 6.485596010878829,
+          "speedup_vs_torch": 5.0
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "rms-decode-fp32",
+        "operation": "rms_norm",
+        "precision": "fp32",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 1e-05,
+        "maximum_absolute_error": 1.430511474609375e-06,
+        "maximum_relative_error": 2.9212606023065746e-07,
+        "rtol": 1e-05
+      },
+      "first_call_wall_ms": 110.372794,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 10.241250258715743,
+          "arithmetic_intensity_flops_per_byte": 0.48490767045454547,
+          "effective_bandwidth_gbps": 21.12000053353609,
+          "empirical_copy_bandwidth_pct": 2.594238404351532,
+          "empirical_memory_roofline_gflops": 394.7690482700912,
+          "implementation": "torch_standard",
+          "logical_bytes": 540672,
+          "modeled_flops": 262176,
+          "p05_ms": 0.02457600086927414,
+          "p50_ms": 0.025599999353289604,
+          "p95_ms": 0.026623999699950218,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 2.5942384043515316,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 42.67187349065934,
+          "arithmetic_intensity_flops_per_byte": 0.48490767045454547,
+          "effective_bandwidth_gbps": 87.99999688736484,
+          "empirical_copy_bandwidth_pct": 10.809326029396383,
+          "empirical_memory_roofline_gflops": 394.7690482700912,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 540672,
+          "modeled_flops": 262176,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.0071680000983178616,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 10.80932602939638,
+          "speedup_vs_torch": 4.166666414029258
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 513,
+        "eps": 1e-06,
+        "name": "resnorm-odd",
+        "operation": "residual_rms_norm",
+        "precision": "fp16",
+        "rows": 17,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.0009765625,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 111.636833,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 1
+      },
+      "timings": [
+        {
+          "achieved_gflops": 1.8528786952980865,
+          "arithmetic_intensity_flops_per_byte": 0.6164222956747747,
+          "effective_bandwidth_gbps": 3.0058593083006655,
+          "empirical_copy_bandwidth_pct": 0.36921948194503784,
+          "empirical_memory_roofline_gflops": 501.8366543220238,
+          "implementation": "torch_standard",
+          "logical_bytes": 70794,
+          "modeled_flops": 43639,
+          "p05_ms": 0.02252800017595291,
+          "p50_ms": 0.023552000522613525,
+          "p95_ms": 0.026470405980944633,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.36921948194503784,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 7.102701571688037,
+          "arithmetic_intensity_flops_per_byte": 0.6164222956747747,
+          "effective_bandwidth_gbps": 11.522460529940716,
+          "empirical_copy_bandwidth_pct": 1.4153413288002477,
+          "empirical_memory_roofline_gflops": 501.8366543220238,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 70794,
+          "modeled_flops": 43639,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 1.4153413288002479,
+          "speedup_vs_torch": 3.8333332828058517
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "resnorm-decode-1",
+        "operation": "residual_rms_norm",
+        "precision": "fp16",
+        "rows": 1,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.00390625,
+        "maximum_relative_error": 0.0009756097570061684,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 113.654211,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 0.9524739658944681,
+          "arithmetic_intensity_flops_per_byte": 0.500048828125,
+          "effective_bandwidth_gbps": 1.9047619198826977,
+          "empirical_copy_bandwidth_pct": 0.23396810600736845,
+          "empirical_memory_roofline_gflops": 407.09564314055325,
+          "implementation": "torch_standard",
+          "logical_bytes": 40960,
+          "modeled_flops": 20482,
+          "p05_ms": 0.020479999482631683,
+          "p50_ms": 0.021503999829292297,
+          "p95_ms": 0.024115202948451042,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.23396810600736848,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 4.00039072605837,
+          "arithmetic_intensity_flops_per_byte": 0.500048828125,
+          "effective_bandwidth_gbps": 8.000000202097004,
+          "empirical_copy_bandwidth_pct": 0.9826660622543683,
+          "empirical_memory_roofline_gflops": 407.09564314055325,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 40960,
+          "modeled_flops": 20482,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 0.9826660622543684,
+          "speedup_vs_torch": 4.200000072759578
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "resnorm-decode-16",
+        "operation": "residual_rms_norm",
+        "precision": "fp16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.0059523810632526875,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 115.941249,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 11.429687343227899,
+          "arithmetic_intensity_flops_per_byte": 0.6154447115384616,
+          "effective_bandwidth_gbps": 18.571428316698785,
+          "empirical_copy_bandwidth_pct": 2.2811889841735256,
+          "empirical_memory_roofline_gflops": 501.0407915576041,
+          "implementation": "torch_standard",
+          "logical_bytes": 532480,
+          "modeled_flops": 327712,
+          "p05_ms": 0.027648000046610832,
+          "p50_ms": 0.028672000393271446,
+          "p95_ms": 0.03379200026392937,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 2.281188984173525,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 53.338539780036896,
+          "arithmetic_intensity_flops_per_byte": 0.6154447115384616,
+          "effective_bandwidth_gbps": 86.66666360119265,
+          "empirical_copy_bandwidth_pct": 10.645548362284316,
+          "empirical_memory_roofline_gflops": 501.0407915576041,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 532480,
+          "modeled_flops": 327712,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.0071680000983178616,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 10.645548362284316,
+          "speedup_vs_torch": 4.6666665656117035
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 512,
+        "eps": 1e-06,
+        "name": "resnorm-prefill-default",
+        "operation": "residual_rms_norm",
+        "precision": "fp16",
+        "rows": 2048,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.0024999999441206455,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 121.844086,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 128.10000323607827,
+          "arithmetic_intensity_flops_per_byte": 0.6254119370194068,
+          "effective_bandwidth_gbps": 204.82500517431484,
+          "empirical_copy_bandwidth_pct": 25.159322025156367,
+          "empirical_memory_roofline_gflops": 509.15522726722645,
+          "implementation": "torch_standard",
+          "logical_bytes": 8389632,
+          "modeled_flops": 5246976,
+          "p05_ms": 0.03993599861860275,
+          "p50_ms": 0.04095999896526337,
+          "p95_ms": 0.043007999658584595,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 25.159322025156367,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 365.99999497986374,
+          "arithmetic_intensity_flops_per_byte": 0.6254119370194068,
+          "effective_bandwidth_gbps": 585.2142776873582,
+          "empirical_copy_bandwidth_pct": 71.8837744128219,
+          "empirical_memory_roofline_gflops": 509.15522726722645,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 8389632,
+          "modeled_flops": 5246976,
+          "p05_ms": 0.013311999849975109,
+          "p50_ms": 0.014336000196635723,
+          "p95_ms": 0.015359999611973763,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 71.88377441282191,
+          "speedup_vs_torch": 2.8571427457761605
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "resnorm-prefill-wide",
+        "operation": "residual_rms_norm",
+        "precision": "fp16",
+        "rows": 128,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.0015243901871144772,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 109.855225,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 2
+      },
+      "timings": [
+        {
+          "achieved_gflops": 73.14999804623663,
+          "arithmetic_intensity_flops_per_byte": 0.6238425925925926,
+          "effective_bandwidth_gbps": 117.25713972532179,
+          "empirical_copy_bandwidth_pct": 14.40307610678421,
+          "empirical_memory_roofline_gflops": 507.8776054774934,
+          "implementation": "torch_standard",
+          "logical_bytes": 4202496,
+          "modeled_flops": 2621696,
+          "p05_ms": 0.03481600061058998,
+          "p50_ms": 0.035840000957250595,
+          "p95_ms": 0.03993599861860275,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 14.403076106784212,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 256.8275754141346,
+          "arithmetic_intensity_flops_per_byte": 0.6238425925925926,
+          "effective_bandwidth_gbps": 411.6865030757186,
+          "empirical_copy_bandwidth_pct": 50.5687930801107,
+          "empirical_memory_roofline_gflops": 507.8776054774934,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 4202496,
+          "modeled_flops": 2621696,
+          "p05_ms": 0.009216000325977802,
+          "p50_ms": 0.010208000428974628,
+          "p95_ms": 0.011264000087976456,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 50.56879308011071,
+          "speedup_vs_torch": 3.5109717330655172
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "resnorm-decode-bf16",
+        "operation": "residual_rms_norm",
+        "precision": "bf16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.03,
+        "maximum_absolute_error": 0.0625,
+        "maximum_relative_error": 0.0078125,
+        "rtol": 0.03
+      },
+      "first_call_wall_ms": 112.64185,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 11.429687343227899,
+          "arithmetic_intensity_flops_per_byte": 0.6154447115384616,
+          "effective_bandwidth_gbps": 18.571428316698785,
+          "empirical_copy_bandwidth_pct": 2.2811889841735256,
+          "empirical_memory_roofline_gflops": 501.0407915576041,
+          "implementation": "torch_standard",
+          "logical_bytes": 532480,
+          "modeled_flops": 327712,
+          "p05_ms": 0.027648000046610832,
+          "p50_ms": 0.028672000393271446,
+          "p95_ms": 0.03277759999036789,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 2.281188984173525,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 53.338539780036896,
+          "arithmetic_intensity_flops_per_byte": 0.6154447115384616,
+          "effective_bandwidth_gbps": 86.66666360119265,
+          "empirical_copy_bandwidth_pct": 10.645548362284316,
+          "empirical_memory_roofline_gflops": 501.0407915576041,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 532480,
+          "modeled_flops": 327712,
+          "p05_ms": 0.005119999870657921,
+          "p50_ms": 0.006144000217318535,
+          "p95_ms": 0.0071680000983178616,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 10.645548362284316,
+          "speedup_vs_torch": 4.6666665656117035
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 4096,
+        "eps": 1e-06,
+        "name": "resnorm-decode-fp32",
+        "operation": "residual_rms_norm",
+        "precision": "fp32",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 1e-05,
+        "maximum_absolute_error": 1.9073486328125e-06,
+        "maximum_relative_error": 2.362887272511216e-07,
+        "rtol": 1e-05
+      },
+      "first_call_wall_ms": 113.361733,
+      "selected_autotune_config": {
+        "kwargs": {},
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 11.04746475584863,
+          "arithmetic_intensity_flops_per_byte": 0.3077223557692308,
+          "effective_bandwidth_gbps": 35.900754523449116,
+          "empirical_copy_bandwidth_pct": 4.40980652353872,
+          "empirical_memory_roofline_gflops": 250.52039577880205,
+          "implementation": "torch_standard",
+          "logical_bytes": 1064960,
+          "modeled_flops": 327712,
+          "p05_ms": 0.028672000393271446,
+          "p50_ms": 0.029664000496268272,
+          "p95_ms": 0.030719999223947525,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 4.409806523538719,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 45.718749372911596,
+          "arithmetic_intensity_flops_per_byte": 0.3077223557692308,
+          "effective_bandwidth_gbps": 148.57142653359028,
+          "empirical_copy_bandwidth_pct": 18.249511873388204,
+          "empirical_memory_roofline_gflops": 250.52039577880205,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 1064960,
+          "modeled_flops": 327712,
+          "p05_ms": 0.006144000217318535,
+          "p50_ms": 0.0071680000983178616,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 18.2495118733882,
+          "speedup_vs_torch": 4.138392869613607
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 513,
+        "eps": 1e-06,
+        "name": "swiglu-odd",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 17,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.00390625,
+        "maximum_relative_error": 0.007575757801532745,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 119.110912,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 3.649972048150468,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 7.299944096300936,
+          "empirical_copy_bandwidth_pct": 0.896675892321694,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 52326,
+          "modeled_flops": 26163,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.0071680000983178616,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.896675892321694,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 6.387451188001764,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 12.774902376003528,
+          "empirical_copy_bandwidth_pct": 1.569182837048026,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 52326,
+          "modeled_flops": 26163,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.004095999989658594,
+          "p95_ms": 0.005119999870657921,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 1.569182837048026,
+          "speedup_vs_torch": 1.7500000284217094
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 1376,
+        "eps": 1e-06,
+        "name": "swiglu-decode-default",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 1,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.00390625,
+        "maximum_relative_error": 0.0009765625,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 122.635339,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 512
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 8
+      },
+      "timings": [
+        {
+          "achieved_gflops": 0.5758928492437844,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 1.1517856984875687,
+          "empirical_copy_bandwidth_pct": 0.14147758603768498,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 8256,
+          "modeled_flops": 4128,
+          "p05_ms": 0.007100800052285194,
+          "p50_ms": 0.0071680000983178616,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 0.14147758603768498,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 1.007812502544482,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 2.015625005088964,
+          "empirical_copy_bandwidth_pct": 0.24758577958698358,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 8256,
+          "modeled_flops": 4128,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.004095999989658594,
+          "p95_ms": 0.005119999870657921,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 0.24758577958698358,
+          "speedup_vs_torch": 1.7500000284217094
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 1376,
+        "eps": 1e-06,
+        "name": "swiglu-batch-default",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.00390625,
+        "maximum_relative_error": 0.007575757801532745,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 111.161444,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 9.092511140908249,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 18.185022281816497,
+          "empirical_copy_bandwidth_pct": 2.2337254732814174,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 132096,
+          "modeled_flops": 66048,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.0072639998979866505,
+          "p95_ms": 0.008655999787151814,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 2.2337254732814174,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 12.900000325881418,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 25.800000651762836,
+          "empirical_copy_bandwidth_pct": 3.169098050770337,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 132096,
+          "modeled_flops": 66048,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 3.169098050770337,
+          "speedup_vs_torch": 1.4187500159161577
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 1376,
+        "eps": 1e-06,
+        "name": "swiglu-prefill-default",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 2048,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.1111111119389534,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 119.530007,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 196.5714301318944,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 393.1428602637888,
+          "empirical_copy_bandwidth_pct": 48.29101707992085,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 16908288,
+          "modeled_flops": 8454144,
+          "p05_ms": 0.04190719872713089,
+          "p50_ms": 0.043007999658584595,
+          "p95_ms": 0.046806398779153824,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 48.29101707992085,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 317.53846511708787,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 635.0769302341757,
+          "empirical_copy_bandwidth_pct": 78.008566312064,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 16908288,
+          "modeled_flops": 8454144,
+          "p05_ms": 0.025599999353289604,
+          "p50_ms": 0.026623999699950218,
+          "p95_ms": 0.026623999699950218,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 78.008566312064,
+          "speedup_vs_torch": 1.615384620766241
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 11008,
+        "eps": 1e-06,
+        "name": "swiglu-decode-7b",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 1,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.00390625,
+        "maximum_relative_error": 0.007575757801532745,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 109.39828,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 4.607142793950275,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 9.21428558790055,
+          "empirical_copy_bandwidth_pct": 1.1318206883014799,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 66048,
+          "modeled_flops": 33024,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.0071680000983178616,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 1.1318206883014799,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 6.450000162940709,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 12.900000325881418,
+          "empirical_copy_bandwidth_pct": 1.5845490253851684,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 66048,
+          "modeled_flops": 33024,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.006144000217318535,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 1.5845490253851684,
+          "speedup_vs_torch": 1.4000000545696836
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 11008,
+        "eps": 1e-06,
+        "name": "swiglu-prefill-7b",
+        "operation": "swiglu",
+        "precision": "fp16",
+        "rows": 128,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.003,
+        "maximum_absolute_error": 0.0078125,
+        "maximum_relative_error": 0.02631578966975212,
+        "rtol": 0.003
+      },
+      "first_call_wall_ms": 106.387058,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 256
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 196.5714301318944,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 393.1428602637888,
+          "empirical_copy_bandwidth_pct": 48.29101707992085,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 8454144,
+          "modeled_flops": 4227072,
+          "p05_ms": 0.020479999482631683,
+          "p50_ms": 0.021503999829292297,
+          "p95_ms": 0.02252800017595291,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 48.29101707992085,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 275.2000069521369,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 550.4000139042738,
+          "empirical_copy_bandwidth_pct": 67.60742508310052,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 8454144,
+          "modeled_flops": 4227072,
+          "p05_ms": 0.014336000196635723,
+          "p50_ms": 0.015359999611973763,
+          "p95_ms": 0.016383999958634377,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 67.60742508310052,
+          "speedup_vs_torch": 1.4000000242531927
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 1376,
+        "eps": 1e-06,
+        "name": "swiglu-batch-bf16",
+        "operation": "swiglu",
+        "precision": "bf16",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 0.03,
+        "maximum_absolute_error": 0.0625,
+        "maximum_relative_error": 0.0078125,
+        "rtol": 0.03
+      },
+      "first_call_wall_ms": 115.607884,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 9.193764234016584,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 18.387528468033167,
+          "empirical_copy_bandwidth_pct": 2.258599967226995,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "torch_standard",
+          "logical_bytes": 132096,
+          "modeled_flops": 66048,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.007183999754488468,
+          "p95_ms": 0.008191999979317188,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 2.258599967226995,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 13.146496629526595,
+          "arithmetic_intensity_flops_per_byte": 0.5,
+          "effective_bandwidth_gbps": 26.29299325905319,
+          "empirical_copy_bandwidth_pct": 3.2296539372563826,
+          "empirical_memory_roofline_gflops": 407.05589158864035,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 132096,
+          "modeled_flops": 66048,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.005024000070989132,
+          "p95_ms": 0.005119999870657921,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 3.2296539372563826,
+          "speedup_vs_torch": 1.4299362366597403
+        }
+      ]
+    },
+    {
+      "case": {
+        "columns": 1376,
+        "eps": 1e-06,
+        "name": "swiglu-batch-fp32",
+        "operation": "swiglu",
+        "precision": "fp32",
+        "rows": 16,
+        "seed": 7
+      },
+      "correctness": {
+        "atol": 1e-05,
+        "maximum_absolute_error": 9.5367431640625e-07,
+        "maximum_relative_error": 3.379711870366009e-07,
+        "rtol": 1e-05
+      },
+      "first_call_wall_ms": 106.540246,
+      "selected_autotune_config": {
+        "kwargs": {
+          "BLOCK_SIZE": 128
+        },
+        "maxnreg": null,
+        "num_ctas": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "timings": [
+        {
+          "achieved_gflops": 8.062500020355856,
+          "arithmetic_intensity_flops_per_byte": 0.25,
+          "effective_bandwidth_gbps": 32.25000008142342,
+          "empirical_copy_bandwidth_pct": 3.9613724733917373,
+          "empirical_memory_roofline_gflops": 203.52794579432017,
+          "implementation": "torch_standard",
+          "logical_bytes": 264192,
+          "modeled_flops": 66048,
+          "p05_ms": 0.0071680000983178616,
+          "p50_ms": 0.008191999979317188,
+          "p95_ms": 0.009216000325977802,
+          "performance_outcome": "baseline",
+          "roofline_efficiency_pct": 3.9613724733917373,
+          "speedup_vs_torch": 1.0
+        },
+        {
+          "achieved_gflops": 12.900000325881418,
+          "arithmetic_intensity_flops_per_byte": 0.25,
+          "effective_bandwidth_gbps": 51.60000130352567,
+          "empirical_copy_bandwidth_pct": 6.338196101540674,
+          "empirical_memory_roofline_gflops": 203.52794579432017,
+          "implementation": "triton_autotuned",
+          "logical_bytes": 264192,
+          "modeled_flops": 66048,
+          "p05_ms": 0.004095999989658594,
+          "p50_ms": 0.005119999870657921,
+          "p95_ms": 0.005119999870657921,
+          "performance_outcome": "improvement",
+          "roofline_efficiency_pct": 6.338196101540674,
+          "speedup_vs_torch": 1.600000036379789
+        }
+      ]
+    }
+  ],
+  "compute_ceiling": {
+    "derivation": "10240 CUDA cores * 1.67 GHz boost * 2 FLOP/cycle",
+    "fp32_gflops": 34201.6,
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3080-3080ti/"
+  },
+  "empirical_copy_ceiling": {
+    "buffer_mib": 256,
+    "effective_bandwidth_gbps": 814.1117831772807,
+    "implementation": "torch.copy_",
+    "logical_bytes": 536870912,
+    "p05_ms": 0.6564351916313171,
+    "p50_ms": 0.6594560146331787,
+    "p95_ms": 1.2907520532608032
+  },
+  "finished_at_utc": "2026-09-02T03:30:04.448964+00:00",
+  "gpu_runtime_state_after": {
+    "gpu_selector": "0",
+    "memory_clock_mhz": 9251,
+    "power_draw_w": 271.4,
+    "power_limit_w": 350.0,
+    "sm_clock_mhz": 1950,
+    "temperature_c": 60.0
+  },
+  "gpu_runtime_state_before": {
+    "gpu_selector": "0",
+    "memory_clock_mhz": 9501,
+    "power_draw_w": 122.68,
+    "power_limit_w": 350.0,
+    "sm_clock_mhz": 1755,
+    "temperature_c": 54.0
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 9 5900XT 16-Core Processor",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "cudnn_version": 90100,
+    "fingerprint_sha256": "77278e66c8912b496682306deb107db0d1c325287febc4504b8bf666e266ea0c",
+    "git_commit": "0bd1d9eb77d6cdf1ae12627a205ebc1b43d61826",
+    "git_dirty": false,
+    "gpus": [
+      {
+        "compute_capability": "8.6",
+        "driver_version": "591.86",
+        "gpu_uuid_sha256_16": "90530f9d34a9c8ce",
+        "multiprocessor_count": 80,
+        "name": "NVIDIA GeForce RTX 3080 Ti",
+        "physical_index": "0",
+        "total_memory_bytes": 12884377600,
+        "visible_index": 0,
+        "vram_mib_nvidia_smi": "12288"
+      }
+    ],
+    "kernel": "6.6.87.2-microsoft-standard-WSL2",
+    "logical_cpu_count": 32,
+    "nvidia_driver_cuda_version": "13.1",
+    "operating_system": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.31",
+    "python_version": "3.11.13",
+    "torch_cuda_runtime": "12.1",
+    "torch_version": "2.5.1+cu121",
+    "triton_version": "3.1.0",
+    "visible_cuda_devices": null
+  },
+  "logical_work_model": {
+    "caveat": "Logical unique bytes are not measured DRAM transactions; cache effects apply.",
+    "residual_rms_norm": "bytes=(4*rows+1)*cols*element_size; flops=rows*(5*cols+2)",
+    "rms_norm": "bytes=(2*rows+1)*cols*element_size; flops=rows*(4*cols+2)",
+    "swiglu": "bytes=3*rows*cols*element_size; flops=3*rows*cols; sigmoid counts as 1"
+  },
+  "measurement": {
+    "autotune_excluded_from_steady_state": true,
+    "latency_quantiles": [
+      0.05,
+      0.5,
+      0.95
+    ],
+    "repetition_ms": 100,
+    "warmup_ms": 25
+  },
+  "schema_version": "1.0",
+  "started_at_utc": "2026-09-02T03:29:54.273734+00:00",
+  "suite_id": "7a928e29-6ee4-4f2f-95ab-f473bf54f158"
+}
